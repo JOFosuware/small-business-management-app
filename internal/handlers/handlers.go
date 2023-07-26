@@ -1067,12 +1067,14 @@ func (m *Repository) CustomerDebt(w http.ResponseWriter, r *http.Request) {
 		Debt    models.Item `json:"debt,omitempty"`
 	}
 
+	m.App.InfoLog.Println("CustomerDebt handler hit")
 	if custId == "" {
 		payload := payload{
 			Err:     true,
 			Message: "customerId is not provided in the url",
 		}
 		jsonData, _ := json.Marshal(payload)
+		m.App.InfoLog.Println(string(jsonData))
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(jsonData)
 		return
@@ -1085,14 +1087,14 @@ func (m *Repository) CustomerDebt(w http.ResponseWriter, r *http.Request) {
 			Message: "customer debt information can't be retrieved",
 		}
 		jsonData, _ := json.Marshal(payload)
+		m.App.InfoLog.Println(string(jsonData))
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(jsonData)
 		return
 	}
 
 	jsonData, _ := json.Marshal(custDebt)
+	m.App.InfoLog.Println(string(jsonData))
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonData)
-
-	m.App.InfoLog.Println(string(jsonData))
 }

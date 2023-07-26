@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"github.com/alexedwards/scs/v2"
+	"github.com/jofosuware/small-business-management-app/cmd/web/middleware"
+	"github.com/jofosuware/small-business-management-app/cmd/web/routes"
 	"github.com/jofosuware/small-business-management-app/internal/config"
 	"github.com/jofosuware/small-business-management-app/internal/driver"
 	"github.com/jofosuware/small-business-management-app/internal/handlers"
@@ -36,7 +38,7 @@ func main() {
 
 	srv := &http.Server{
 		Addr:    portNumber,
-		Handler: routes(&app),
+		Handler: routes.Routes(&app),
 	}
 
 	err = srv.ListenAndServe()
@@ -53,7 +55,7 @@ func run() (*driver.DB, error) {
 	gob.Register(models.Item{})
 
 	// read flags
-	inProduction := flag.Bool("production", true, "Application is in production")
+	inProduction := flag.Bool("production", true, "application is in production")
 	useCache := flag.Bool("cache", true, "Use template cache")
 	dbHost := flag.String("dbhost", "localhost", "Database host")
 	dbName := flag.String("dbname", "", "Database name")
@@ -86,6 +88,8 @@ func run() (*driver.DB, error) {
 	session.Cookie.Secure = app.InProduction
 
 	app.Session = session
+	middleware.Session = session
+	middleware.App.InProduction = app.InProduction
 
 	// connect to database
 	log.Println("Connecting to database...")

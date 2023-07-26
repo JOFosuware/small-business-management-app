@@ -146,7 +146,7 @@
         const custIdEl = document.getElementById("customerId")
 
         custIdEl.addEventListener("change", function(){
-            const apiUrl = `http://localhost:8080/customer-debt/${custIdEl.value}`
+            const apiUrl = `http://localhost:8080/admin/customer-debt/${custIdEl.value}`
             const requestHeader = {
                 method: "POST",
                 headers: {
@@ -155,9 +155,9 @@
             }
 
             fetch(apiUrl, requestHeader)
-                .then(res => res.json)
-                .then(payload => {
-                    console.log(payload)
+                .then(response => response.json())
+                .then((payload) => {
+                    console.log("Payload Received: ", payload)
                 })
         })
     </script>

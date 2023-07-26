@@ -1,20 +1,21 @@
-package main
+package routes
 
 import (
 	"net/http"
 
 	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
+	chiMiddleware "github.com/go-chi/chi/middleware"
+	"github.com/jofosuware/small-business-management-app/cmd/web/middleware"
 	"github.com/jofosuware/small-business-management-app/internal/config"
 	"github.com/jofosuware/small-business-management-app/internal/handlers"
 )
 
-func routes(app *config.AppConfig) http.Handler {
+func Routes(app *config.AppConfig) http.Handler {
 	mux := chi.NewRouter()
 
-	mux.Use(middleware.Recoverer)
-	mux.Use(NoSurf)
-	mux.Use(SessionLoad)
+	mux.Use(chiMiddleware.Recoverer)
+	mux.Use(middleware.NoSurf)
+	mux.Use(middleware.SessionLoad)
 
 	mux.Get("/", handlers.Repo.Home)
 	mux.Post("/login", handlers.Repo.PostLogin)
@@ -25,7 +26,7 @@ func routes(app *config.AppConfig) http.Handler {
 	mux.Handle("/static/*", http.StripPrefix("/static", fileServer))
 
 	mux.Route("/admin", func(mux chi.Router) {
-		mux.Use(Auth)
+		mux.Use(middleware.Auth)
 		mux.Get("/dashboard", handlers.Repo.Dashboard)
 
 		//Product route

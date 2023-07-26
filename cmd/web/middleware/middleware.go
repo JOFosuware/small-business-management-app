@@ -1,11 +1,16 @@
-package main
+package middleware
 
 import (
 	"net/http"
 
+	"github.com/alexedwards/scs/v2"
+	"github.com/jofosuware/small-business-management-app/internal/config"
 	"github.com/jofosuware/small-business-management-app/internal/helpers"
 	"github.com/justinas/nosurf"
 )
+
+var App config.AppConfig
+var Session *scs.SessionManager
 
 // NoSurf adds CSRF protection to all POST requests
 func NoSurf(next http.Handler) http.Handler {
@@ -14,7 +19,7 @@ func NoSurf(next http.Handler) http.Handler {
 	csrfHandler.SetBaseCookie(http.Cookie{
 		HttpOnly: true,
 		Path:     "/",
-		Secure:   app.InProduction,
+		Secure:   App.InProduction,
 		SameSite: http.SameSiteLaxMode,
 	})
 	return csrfHandler
@@ -22,13 +27,13 @@ func NoSurf(next http.Handler) http.Handler {
 
 // SessionLoad loads and saves the session on every request
 func SessionLoad(next http.Handler) http.Handler {
-	return session.LoadAndSave(next)
+	return Session.LoadAndSave(next)
 }
 
 func Auth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !helpers.IsAuthenticated(r) {
-			session.Put(r.Context(), "error", "Log in first")
+			Session.Put(r.Context(), "error", "Log in first")
 			http.Redirect(w, r, "/", http.StatusSeeOther)
 			return
 		}
