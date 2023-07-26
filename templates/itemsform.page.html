@@ -1,0 +1,180 @@
+{{template "admin" .}} {{define "content"}}
+<main id="main" class="main">
+  <div class="pagetitle">
+    <h1>Contract Form</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li>
+        <li class="breadcrumb-item">Contract</li>
+        <li class="breadcrumb-item active">Add Items</li>
+      </ol>
+    </nav>
+  </div>
+  <!-- End Page Title -->
+
+  <section
+    class="section register min-vh-50 d-flex flex-column align-items-center justify-content-center py-4"
+  >
+    <div class="row justify-content-center">
+      <div
+        class="col-xl-8 col-lg-10 col-md-6 d-flex flex-column align-items-center justify-content-center"
+      >
+        {{$meta := index .Data "metadata"}} {{$prods := index .Data "products"}} 
+        {{$custId := index .Data "customerId"}} {{$itm := index .Data "item"}}
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">{{$meta.Message}}</h5>
+
+            <!-- Product Entry Form -->
+            <form
+              action="{{$meta.Url}}"
+              method="post"
+              class="row g-3 needs-validation justify-content-center"
+              novalidate
+            >
+              <input type="hidden" name="csrf_token" value="{{.CSRFToken}}" />
+              <input type="hidden" name="cust_id" value="{{$custId}}" />
+              {{range $prod := $prods}}
+                <input type="hidden" id="{{$prod.Serial}}" value="{{$prod.Price}}" />
+              {{end}}
+                <div class="row mt-3">
+                  <div class="col-6">
+                    {{with .Form.Errors.Get "serial"}}
+                    <label class="text-danger">{{.}}</label>
+                    {{end}}
+                    <select class="form-select" id="serial" aria-label="Select Product" name="serial">
+                      {{if $itm.Serial}}
+                        <option selected value="{{$itm.Serial}}">
+                          {{range $prod := $prods}}
+                            {{if eq $itm.Serial $prod.Serial}}
+                              {{$prod.Name}}
+                            {{end}}
+                          {{end}}
+                        </option>
+                      {{else}}
+                        <option selected value="no product">Select Product</option>
+                        {{range $prod := $prods}}
+                            <option value="{{$prod.Serial}}">{{$prod.Name}}</option>
+                        {{end}}
+                      {{end}}
+                    </select>
+                  </div>
+                  <div class="col-6">
+                    <input 
+                    class="form-control" 
+                    name="price"
+                    id="price"
+                    type="text" 
+                    value="{{$itm.Price}}" 
+                    aria-label="Price" 
+                    disabled readonly
+                    >
+                  </div>
+                  <div class="col-6 mt-3">
+                    {{with .Form.Errors.Get "quantity"}}
+                    <label class="text-danger">{{.}}</label>
+                    {{end}}
+                    <input
+                      type="text"
+                      name="quantity"
+                      value="{{$itm.Quantity}}"
+                      class="form-control"
+                      placeholder="Quantity"
+                      aria-label="Quantity"
+                      id="quantity"
+                      required
+                    />
+                    <div class="invalid-feedback">Please enter a quantity!</div>
+                    <small id="stock-alert" class="text-danger"></small>
+                  </div>
+                  <div class="col-6 mt-3">
+                    {{with .Form.Errors.Get "deposit"}}
+                    <label class="text-danger">{{.}}</label>
+                    {{end}}
+                    <input
+                      type="text"
+                      name="deposit"
+                      value="{{$itm.Deposit}}"
+                      class="form-control"
+                      placeholder="Deposit Amount"
+                      aria-label="Deposit Amount"
+                      id="deposit"
+                      required
+                    />
+                    <div class="invalid-feedback">Please enter a deposit!</div>
+                  </div>
+                </div>
+                
+              <div class="col-6">
+                <button id="btn-item" class="btn btn-primary w-100" type="submit">
+                  {{$meta.Button}}
+                </button>
+              </div>
+            </form>
+            <!-- End General Form Elements -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<!-- End #main -->
+{{end}}
+
+{{define "js"}}
+    <script>
+        const serialDiv = document.getElementById("serial")
+        const inputUnitDiv = document.getElementById("quantity")
+        const stockAlert = document.getElementById("stock-alert")
+        const btnItem = document.getElementById("btn-item")
+        let units = ""
+
+        let prods = [{{range index .Data "products"}} {serial: {{.Serial}}, price: {{.Price}}, units: {{.Units}}}, {{end}}]
+    
+        serialDiv.addEventListener("change", () => {
+            const serial = serialDiv.value
+            if (serial !== "no product") {
+                //const price = document.getElementById(serial).value
+                
+                for (let i = 0; i < prods.length; i++) {
+                  const prod = prods[i]
+                  if (serial === prod.serial) {
+                    document.getElementById("price").value = "₵" + prod.price
+                    units = prod.units
+                    if (parseInt(units) === 0) {
+                      stockAlert.innerText = "We are out of Stock for this Product!"
+                      btnItem.disabled = true
+                      inputUnitDiv.value = ""
+                    }else {
+                      stockAlert.innerText = ""
+                      btnItem.disabled = false
+                      inputUnitDiv.value = ""
+                    }
+                    break
+                  }
+                }
+            }else {
+                document.getElementById("price").value = ""
+                stockAlert.innerText = ""
+                btnItem.disabled = false
+                inputUnitDiv.value = ""
+            }
+        })
+
+        inputUnitDiv.addEventListener("change", () => {
+          const inputUnit = inputUnitDiv.value
+          if (parseInt(inputUnit) > parseInt(units)) {
+            stockAlert.innerHTML = `There is not enough stock to satisfy this quantity! <span class="text-dark"> Quantity left: ${units}</span>`
+            btnItem.disabled = true
+          }else {
+            stockAlert.innerText = ""
+            btnItem.disabled = false
+            
+            let price = document.getElementById("price").value
+            price = price.replace("₵", "")
+            
+            document.getElementById("price").value = "₵" + (parseInt(price) * parseInt(inputUnit))
+          }
+        })
+    </script>
+{{end}}

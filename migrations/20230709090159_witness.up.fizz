@@ -1,0 +1,11 @@
+create_table("witness") {
+  t.Column("id", "integer", {primary: true})
+  t.Column("customer_id", "string", {"default": ""})
+  t.Column("first_name", "string", {"default": ""})
+  t.Column("last_name", "string", {"default": ""})
+  t.Column("phone", "integer", {})
+  t.Column("terms", "string", {"default": "No, I do not agree to the terms"})
+  t.Column("user_id", "integer", {})
+  t.Column("created_at", "timestamp", {})
+  t.Column("updated_at", "timestamp", {})
+}

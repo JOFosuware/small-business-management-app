@@ -1,0 +1,58 @@
+{{template "admin" .}} {{define "content"}}
+<main id="main" class="main">
+  <div class="pagetitle">
+    <h1>Witness Preview</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+        <li class="breadcrumb-item">Witness</li>
+        <li class="breadcrumb-item active">Preview</li>
+      </ol>
+    </nav>
+  </div>
+  <!-- End Page Title -->
+
+  <section class="section">
+    {{$witn := index .Data "witness"}}
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Witness Preview</h5>
+            <!-- Table with stripped rows -->
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Customer ID</th>
+                  <th>First name</th>
+                  <th>Last name</th>
+                  <th>Phone</th>
+                  <th>Terms</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>{{$witn.CustomerId}}</td>
+                  <td>{{$witn.FirstName}}</td>
+                  <td>{{$witn.LastName}}</td>
+                  <td>{{$witn.Phone}}</td>
+                  <td>{{$witn.Terms}}</td>
+                </tr>
+              </tbody>
+            </table>
+            <!-- End Table with stripped rows -->
+
+            <a href="/admin/edit-witness" class="btn btn-outline-dark">
+              Edit Witness
+            </a>
+            <a href="/admin/add-item" class="btn btn-outline-dark">
+              Add Items
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<!-- End #main -->
+{{end}}

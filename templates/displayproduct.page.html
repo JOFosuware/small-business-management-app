@@ -1,0 +1,58 @@
+{{template "admin" .}} {{define "content"}}
+<main id="main" class="main">
+  <div class="pagetitle">
+    <h1>Product Review</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+        <li class="breadcrumb-item">Product</li>
+        <li class="breadcrumb-item active">Review</li>
+      </ol>
+    </nav>
+  </div>
+  <!-- End Page Title -->
+
+  <section class="section">
+    {{$prod := index .Data "product"}}
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Product Review</h5>
+            <!-- Table with stripped rows -->
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Serial Number</th>
+                  <th>Product Name</th>
+                  <th>Description</th>
+                  <th>Unit Price</th>
+                  <th>Units In Stock</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>{{$prod.Serial}}</td>
+                  <td>{{$prod.Name}}</td>
+                  <td>{{$prod.Description}}</td>
+                  <td>Gh${{$prod.Price}}</td>
+                  <td>{{$prod.Units}}</td>
+                </tr>
+              </tbody>
+            </table>
+            <!-- End Table with stripped rows -->
+
+            <a href="/admin/edit-product" class="btn btn-outline-dark">
+              Edit Product
+            </a>
+            <a href="/admin/add-product" class="btn btn-outline-dark">
+              Add Product
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<!-- End #main -->
+{{end}}

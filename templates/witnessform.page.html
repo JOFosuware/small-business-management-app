@@ -1,0 +1,134 @@
+{{template "admin" .}} {{define "content"}}
+<main id="main" class="main">
+  <div class="pagetitle">
+    <h1>Witness Form</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li>
+        <li class="breadcrumb-item">Witness</li>
+        <li class="breadcrumb-item active">Form</li>
+      </ol>
+    </nav>
+  </div>
+  <!-- End Page Title -->
+
+  <section
+    class="section register min-vh-50 d-flex flex-column align-items-center justify-content-center py-4"
+  >
+    <div class="row justify-content-center">
+      <div
+        class="col-xl-8 col-lg-10 col-md-6 d-flex flex-column align-items-center justify-content-center"
+      >
+        {{$meta := index .Data "metadata"}} {{$witn := index .Data "witness"}}
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">{{$meta.Message}}</h5>
+
+            <!-- Product Entry Form -->
+            <form
+              action="{{$meta.Url}}"
+              method="post"
+              class="row g-3 needs-validation justify-content-center"
+              novalidate
+            >
+              <input type="hidden" name="csrf_token" value="{{.CSRFToken}}" />
+              <input
+                type="hidden"
+                name="cust_id"
+                value="{{$witn.CustomerId}}"
+              />
+              <div class="row mt-4">
+                <div class="col">
+                  {{with .Form.Errors.Get "firstname"}}
+                  <label class="text-danger">{{.}}</label>
+                  {{end}}
+                  <label for="firstname" class="mb-2">First name</label>
+                  <input
+                    type="text"
+                    name="firstname"
+                    class="form-control"
+                    aria-label="First name"
+                    id="firstName"
+                    value="{{$witn.FirstName}}"
+                    required
+                  />
+                  <div class="invalid-feedback">
+                    Please enter customer's first name!
+                  </div>
+                </div>
+                <div class="col">
+                  {{with .Form.Errors.Get "lastname"}}
+                  <label class="text-danger">{{.}}</label>
+                  {{end}}
+                  <label for="lastname" class="mb-2">Last name</label>
+                  <input
+                    type="text"
+                    name="lastname"
+                    class="form-control"
+                    aria-label="Last name"
+                    id="lastName"
+                    value="{{$witn.LastName}}"
+                    required
+                  />
+                  <div class="invalid-feedback">
+                    Please enter customer's last name!
+                  </div>
+                </div>
+              </div>
+
+              <div class="row mt-4">
+                <div class="col-xl-6 col-lg-6">
+                  {{with .Form.Errors.Get "phone"}}
+                  <label class="text-danger">{{.}}</label>
+                  {{end}}
+                  <label for="phone" class="mb-2">Phone</label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    class="form-control"
+                    aria-label="Phone"
+                    id="phone"
+                    value="{{if $witn.Phone}} 0{{$witn.Phone}} {{else}}  {{end}}"
+                    required
+                  />
+                  <div class="invalid-feedback">
+                    Please enter customer's phone!
+                  </div>
+                </div>
+              </div>
+
+              <div class="row mt-4">
+                <div class="col">
+                  {{if $witn.Terms}}
+                  <label class="text-info"
+                    >Check the box if you agree to the terms</label
+                  >
+                  {{end}}
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      name="terms"
+                      value="Yes, I agree to the terms"
+                    />
+                    <label class="form-check-label" for="terms">
+                      Do you agreement to the terms and condition?
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div class="col-7">
+                <button class="btn btn-primary w-100" type="submit">
+                  {{$meta.Button}}
+                </button>
+              </div>
+            </form>
+            <!-- End General Form Elements -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<!-- End #main -->
+{{end}}

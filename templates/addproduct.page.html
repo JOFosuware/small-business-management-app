@@ -1,0 +1,137 @@
+{{template "admin" .}} {{define "content"}}
+<main id="main" class="main">
+  <div class="pagetitle">
+    <h1>Product Form</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li>
+        <li class="breadcrumb-item">Products</li>
+        <li class="breadcrumb-item active">Form</li>
+      </ol>
+    </nav>
+  </div>
+  <!-- End Page Title -->
+
+  <section
+    class="section register min-vh-50 d-flex flex-column align-items-center justify-content-center py-4"
+  >
+    <div class="row justify-content-center">
+      <div
+        class="col-lg-8 col-md-6 d-flex flex-column align-items-center justify-content-center"
+      >
+        {{$prod := index .Data "product"}} {{$meta := index .Data "metadata"}}
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">{{$meta.Message}}</h5>
+
+            <!-- Product Entry Form -->
+            <form
+              action="{{$meta.Url}}"
+              method="post"
+              class="row g-3 needs-validation justify-content-center"
+              novalidate
+            >
+              <input type="hidden" name="csrf_token" value="{{.CSRFToken}}" />
+              <input type="hidden" name="prod_id" value="{{$prod.ID}}" />
+              <div class="col-9">
+                {{with .Form.Errors.Get "serial"}}
+                <label class="text-danger">{{.}}</label>
+                {{end}}
+                <label for="serial" class="form-label">Serial Number</label>
+                <input
+                  type="text"
+                  name="serial"
+                  class="form-control"
+                  id="serial"
+                  value="{{$prod.Serial}}"
+                  required
+                />
+                <div class="invalid-feedback">
+                  Please enter product serial number!
+                </div>
+              </div>
+
+              <div class="col-9">
+                {{with .Form.Errors.Get "name"}}
+                <label class="text-danger">{{.}}</label>
+                {{end}}
+                <label for="name" class="form-label">Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  class="form-control"
+                  id="name"
+                  value="{{$prod.Name}}"
+                  required
+                />
+                <div class="invalid-feedback">Please enter product name!</div>
+              </div>
+
+              <div class="col-9">
+                {{with .Form.Errors.Get "description"}}
+                <label class="text-danger">{{.}}</label>
+                {{end}}
+                <label for="description" class="form-label">Description</label>
+                <textarea
+                  name="description"
+                  class="form-control"
+                  id="description"
+                  rows="3"
+                  required
+                >
+                  {{$prod.Description}}
+                </textarea>
+                <div class="invalid-feedback">
+                  Please enter product description!
+                </div>
+              </div>
+
+              <div class="col-9">
+                {{with .Form.Errors.Get "price"}}
+                <label class="text-danger">{{.}}</label>
+                {{end}}
+                <label for="price" class="form-label">Price</label>
+                <input
+                  type="number"
+                  name="price"
+                  class="form-control"
+                  id="price"
+                  value="{{$prod.Price}}"
+                  required
+                />
+                <div class="invalid-feedback">Please enter product price!</div>
+              </div>
+
+              <div class="col-9">
+                {{with .Form.Errors.Get "stock"}}
+                <label class="text-danger">{{.}}</label>
+                {{end}}
+                <label for="stock" class="form-label">Quantity</label>
+                <input
+                  type="number"
+                  name="stock"
+                  class="form-control"
+                  id="stock"
+                  value="{{$prod.Units}}"
+                  required
+                />
+                <div class="invalid-feedback">
+                  Please enter product quantity!
+                </div>
+              </div>
+
+              <div class="col-9">
+                <button class="btn btn-primary w-100" type="submit">
+                  {{$meta.Button}}
+                </button>
+              </div>
+            </form>
+            <!-- End General Form Elements -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<!-- End #main -->
+{{end}}

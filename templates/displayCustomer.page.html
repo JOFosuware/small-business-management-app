@@ -1,0 +1,66 @@
+{{template "admin" .}} {{define "content"}}
+<main id="main" class="main">
+  <div class="pagetitle">
+    <h1>Customer Preview</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+        <li class="breadcrumb-item">Customer</li>
+        <li class="breadcrumb-item active">Preview</li>
+      </ol>
+    </nav>
+  </div>
+  <!-- End Page Title -->
+
+  <section class="section">
+    {{$cust := index .Data "customer"}}
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Customer Preview</h5>
+            <!-- Table with stripped rows -->
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Customer ID</th>
+                  <th>ID Type</th>
+                  <th>First name</th>
+                  <th>Last name</th>
+                  <th>House Number</th>
+                  <th>Phone</th>
+                  <th>Location</th>
+                  <th>Landmark</th>
+                  <th>Terms</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>{{$cust.CustomerId}}</td>
+                  <td>{{$cust.IDType}}</td>
+                  <td>{{$cust.FirstName}}</td>
+                  <td>{{$cust.LastName}}</td>
+                  <td>{{$cust.HouseAddress}}</td>
+                  <td>{{$cust.Phone}}</td>
+                  <td>{{$cust.Location}}</td>
+                  <td>{{$cust.Landmark}}</td>
+                  <td>{{$cust.Agreement}}</td>
+                </tr>
+              </tbody>
+            </table>
+            <!-- End Table with stripped rows -->
+
+            <a href="/admin/edit-contract" class="btn btn-outline-dark">
+              Edit Contact
+            </a>
+            <a href="/admin/add-witness" class="btn btn-outline-dark">
+              Add Witness Information
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<!-- End #main -->
+{{end}}

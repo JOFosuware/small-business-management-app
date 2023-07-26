@@ -1,0 +1,164 @@
+{{template "admin" .}} {{define "content"}}
+<main id="main" class="main">
+  <div class="pagetitle">
+    <h1>Payment Form</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li>
+        <li class="breadcrumb-item">Payment</li>
+        <li class="breadcrumb-item active">Form</li>
+      </ol>
+    </nav>
+  </div>
+  <!-- End Page Title -->
+
+  <section
+    class="section register min-vh-50 d-flex flex-column align-items-center justify-content-center py-4"
+  >
+    <div class="row justify-content-center">
+      <div
+        class="col-xl-8 col-lg-10 col-md-6 d-flex flex-column align-items-center justify-content-center"
+      >
+        {{$meta := index .Data "metadata"}}
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">{{$meta.Message}}</h5>
+
+            <!-- Product Entry Form -->
+            <form
+              action="{{$meta.Url}}"
+              method="post"
+              class="row g-3 needs-validation justify-content-center"
+              novalidate
+            >
+              <input type="hidden" name="csrf_token" value="{{.CSRFToken}}" />
+              <input type="hidden" name="cust_id" value="" />
+              <div class="row mt-4">
+                <div class="col">
+                  {{with .Form.Errors.Get "customerId"}}
+                  <label class="text-danger">{{.}}</label>
+                  {{end}}
+                  <input
+                    type="text"
+                    name="customerId"
+                    class="form-control"
+                    placeholder="Customer ID"
+                    aria-label="Customer ID"
+                    id="customerId"
+                    value=""
+                    required
+                  />
+                  <div class="invalid-feedback">Please enter customer Id!</div>
+                </div>
+                <div class="col-6">
+                    <input 
+                    class="form-control" 
+                    name="balance"
+                    placeholder="Balance"
+                    id="balance"
+                    type="text" 
+                    value="" 
+                    aria-label="Balance" 
+                    disabled readonly
+                    >
+                  </div>
+              </div>
+
+              <div class="row mt-4">
+                <div class="col">
+                    {{with .Form.Errors.Get "month"}}
+                    <label class="text-danger">{{.}}</label>
+                    {{end}}
+                    <select id="month" name="month" class="form-select">
+                        <option selected>The Month</option>
+                        <option value="January">January</option>
+                        <option value="February">February</option>
+                        <option value="March">March</option>
+                        <option value="Apirl">Apirl</option>
+                        <option value="May">May</option>
+                        <option value="June">June</option>
+                        <option value="July">July</option>
+                        <option value="August">August</option>
+                        <option value="September">September</option>
+                        <option value="October">October</option>
+                        <option value="November">November</option>
+                        <option value="December">December</option>
+                    </select>
+                    <div class="invalid-feedback">Please choose the month!</div>
+                </div>
+                <div class="col">
+                  {{with .Form.Errors.Get "payingamount"}}
+                  <label class="text-danger">{{.}}</label>
+                  {{end}}
+                  <input
+                    type="text"
+                    name="payingamount"
+                    class="form-control"
+                    placeholder="Paying Amount"
+                    aria-label="Paying Amount"
+                    id="payingamount"
+                    value=""
+                    required
+                  />
+                  <div class="invalid-feedback">
+                    Please enter customer's paying amount!
+                  </div>
+                </div>
+              </div>
+              <div class="row mt-4">
+                <div class="col">
+                    {{with .Form.Errors.Get "date"}}
+                    <label class="text-danger">{{.}}</label>
+                    {{end}}
+                    <input
+                      type="text"
+                      name="date"
+                      class="form-control"
+                      placeholder="Payment Date"
+                      aria-label="Payment date"
+                      id="date"
+                      value=""
+                      required
+                    />
+                    <div class="invalid-feedback">
+                      Please enter payment date!
+                    </div>
+                  </div>
+              </div>
+              <div class="col-7">
+                <button class="btn btn-primary w-100" type="submit">
+                  {{$meta.Button}}
+                </button>
+              </div>
+            </form>
+            <!-- End General Form Elements -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<!-- End #main -->
+{{end}}
+
+{{define "js"}}
+    <script>
+        const custIdEl = document.getElementById("customerId")
+
+        custIdEl.addEventListener("change", function(){
+            const apiUrl = `http://localhost:8080/customer-debt/${custIdEl.value}`
+            const requestHeader = {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            }
+
+            fetch(apiUrl, requestHeader)
+                .then(res => res.json)
+                .then(payload => {
+                    console.log(payload)
+                })
+        })
+    </script>
+{{end}}
