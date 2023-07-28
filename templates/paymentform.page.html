@@ -34,6 +34,7 @@
               <input type="hidden" name="csrf_token" value="{{.CSRFToken}}" />
               <input type="hidden" name="cust_id" value="" />
               <div class="row mt-4">
+              <span id="errorinfo" class="text-danger"></span>
                 <div class="col">
                   {{with .Form.Errors.Get "customerId"}}
                   <label class="text-danger">{{.}}</label>
@@ -144,6 +145,8 @@
 {{define "js"}}
     <script>
         const custIdEl = document.getElementById("customerId")
+        const balEl = document.getElementById("balance")
+        const errEl = document.getElementById("errorinfo")
 
         custIdEl.addEventListener("change", function(){
 
@@ -158,8 +161,15 @@
 
             fetch(apiUrl, requestHeader)
                 .then(response => response.json())
-                .then((payload) => {
-                    console.log("Payload Received: ", payload)
+                .then((res) => {
+                    if(res.error === true){
+                      throw new Error(res.message)
+                    }
+
+                    balEl.value = res.debt
+                })
+                .catch(err => {
+                    errEl.innerText = err.message
                 })
         })
     </script>

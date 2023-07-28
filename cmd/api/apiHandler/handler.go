@@ -2,11 +2,11 @@ package apihandler
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/go-chi/chi"
-	"github.com/jofosuware/small-business-management-app/internal/models"
 	"github.com/jofosuware/small-business-management-app/internal/repository"
 )
 
@@ -23,9 +23,9 @@ func (c *Repository) CustomerDebt(w http.ResponseWriter, r *http.Request) {
 	custId := chi.URLParam(r, "id")
 
 	type payload struct {
-		Err     bool          `json:"error"`
-		Message string        `json:"message"`
-		Debt    []models.Item `json:"debt,omitempty"`
+		Err     bool   `json:"error"`
+		Message string `json:"message"`
+		Debt    int    `json:"debt,omitempty"`
 	}
 
 	if custId == "" {
@@ -54,10 +54,26 @@ func (c *Repository) CustomerDebt(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(custDebt) == 0 {
+		payload := payload{
+			Err:     true,
+			Message: fmt.Sprintf("Customer with this id: %s does not owe!", custId),
+		}
+		jsonData, _ := json.Marshal(payload)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jsonData)
+		return
+	}
+
+	balance := 0
+	for _, v := range custDebt {
+		balance += int(v.Balance)
+	}
+
 	pload := payload{
 		Err:     false,
 		Message: "",
-		Debt:    custDebt,
+		Debt:    balance,
 	}
 
 	jsonData, _ := json.Marshal(pload)
