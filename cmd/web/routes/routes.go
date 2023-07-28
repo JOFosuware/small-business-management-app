@@ -14,7 +14,7 @@ func Routes(app *config.AppConfig) http.Handler {
 	mux := chi.NewRouter()
 
 	mux.Use(chiMiddleware.Recoverer)
-	mux.Use(middleware.NoSurf)
+	//mux.Use(middleware.NoSurf)
 	mux.Use(middleware.SessionLoad)
 
 	mux.Get("/", handlers.Repo.Home)
@@ -53,7 +53,6 @@ func Routes(app *config.AppConfig) http.Handler {
 		mux.Get("/edit-item", handlers.Repo.ItemForm)
 		mux.Post("/edit-item", handlers.Repo.UpdateItem)
 		mux.Get("/pay", handlers.Repo.PaymentForm)
-		mux.Post("/customer-debt/{id}", handlers.Repo.CustomerDebt)
 	})
 
 	return mux

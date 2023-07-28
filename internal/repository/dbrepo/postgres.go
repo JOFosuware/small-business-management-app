@@ -528,12 +528,12 @@ func (m *postgresDBRepo) CustomerDebt(customerId string) ([]models.Item, error) 
 	defer rows.Close()
 
 	for rows.Next() {
-		var data models.Item
-		err := rows.Scan(&data)
+		var itm models.Item
+		err := rows.Scan(&itm.CustomerId, &itm.Serial, &itm.Price, &itm.Quantity, &itm.Deposit, &itm.Balance)
 		if err != nil {
 			return custDebt, err
 		}
-		custDebt = append(custDebt, data)
+		custDebt = append(custDebt, itm)
 	}
 
 	return custDebt, nil

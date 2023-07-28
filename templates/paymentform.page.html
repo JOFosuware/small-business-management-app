@@ -146,13 +146,15 @@
         const custIdEl = document.getElementById("customerId")
 
         custIdEl.addEventListener("change", function(){
-            const apiUrl = `http://localhost:8080/admin/customer-debt/${custIdEl.value}`
+
+            const apiUrl = `http://localhost:8081/api/customer-debt/${custIdEl.value}`
             const requestHeader = {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 }
             }
+
 
             fetch(apiUrl, requestHeader)
                 .then(response => response.json())

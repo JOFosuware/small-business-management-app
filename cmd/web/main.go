@@ -34,7 +34,7 @@ func main() {
 	}
 	defer db.SQL.Close()
 
-	fmt.Printf("Starting application on port %s", portNumber)
+	fmt.Printf("\nStarting application on port %s", portNumber)
 
 	srv := &http.Server{
 		Addr:    portNumber,
@@ -92,13 +92,13 @@ func run() (*driver.DB, error) {
 	middleware.App.InProduction = app.InProduction
 
 	// connect to database
-	log.Println("Connecting to database...")
+	log.Println("\nConnecting to database...")
 	connectionString := fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s sslmode=%s", *dbHost, *dbPort, *dbName, *dbUser, *dbPass, *dbSSL)
 	db, err := driver.ConnectSQL(connectionString)
 	if err != nil {
 		log.Fatal("Cannot connect to database! Dying...")
 	}
-	log.Println("Connected to database!")
+	log.Println("\nConnected to database!")
 
 	tc, err := render.CreateTemplateCache()
 	if err != nil {

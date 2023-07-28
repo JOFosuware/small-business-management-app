@@ -1,14 +1,12 @@
 package handlers
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
 
-	"github.com/go-chi/chi"
 	"github.com/jofosuware/small-business-management-app/internal/config"
 	"github.com/jofosuware/small-business-management-app/internal/driver"
 	"github.com/jofosuware/small-business-management-app/internal/forms"
@@ -1055,46 +1053,4 @@ func (m *Repository) PaymentForm(w http.ResponseWriter, r *http.Request) {
 		Data: data,
 		Form: forms.New(nil),
 	})
-}
-
-// CustomerDebt handles the request for the customer balance
-func (m *Repository) CustomerDebt(w http.ResponseWriter, r *http.Request) {
-	custId := chi.URLParam(r, "id")
-
-	type payload struct {
-		Err     bool        `json:"error"`
-		Message string      `json:"message"`
-		Debt    models.Item `json:"debt,omitempty"`
-	}
-
-	m.App.InfoLog.Println("CustomerDebt handler hit")
-	if custId == "" {
-		payload := payload{
-			Err:     true,
-			Message: "customerId is not provided in the url",
-		}
-		jsonData, _ := json.Marshal(payload)
-		m.App.InfoLog.Println(string(jsonData))
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(jsonData)
-		return
-	}
-
-	custDebt, err := m.DB.CustomerDebt(custId)
-	if err != nil {
-		payload := payload{
-			Err:     true,
-			Message: "customer debt information can't be retrieved",
-		}
-		jsonData, _ := json.Marshal(payload)
-		m.App.InfoLog.Println(string(jsonData))
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(jsonData)
-		return
-	}
-
-	jsonData, _ := json.Marshal(custDebt)
-	m.App.InfoLog.Println(string(jsonData))
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(jsonData)
 }

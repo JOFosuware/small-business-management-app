@@ -1,5 +1,7 @@
 /tmp
+/dist
 .air.toml
 postsqlinstall.sh
 database.yml
 oseeea
+run.sh
