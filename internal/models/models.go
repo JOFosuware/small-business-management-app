@@ -47,6 +47,7 @@ type Customer struct {
 	HouseAddress string
 	Location     string
 	Landmark     string
+	Status       string
 	Agreement    string
 	UserId       int
 	CreatedAt    time.Time
@@ -85,4 +86,15 @@ type Friends struct {
 	Name  string `json:"name"`
 	Place string `json:"place"`
 	Year  string `json:"year"`
+}
+
+// Payment is the model type for payment database
+type Payments struct {
+	CustomerId string
+	Month      string
+	Amount     int
+	Date       time.Time
+	UserId     int
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
 }

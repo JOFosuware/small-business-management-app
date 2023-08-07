@@ -1,11 +1,11 @@
 {{template "admin" .}} {{define "content"}}
 <main id="main" class="main">
   <div class="pagetitle">
-    <h1>Product Form</h1>
+    <h1>Product Search Form</h1>
     <nav>
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li>
-        <li class="breadcrumb-item">Products</li>
+        <li class="breadcrumb-item">Search</li>
         <li class="breadcrumb-item active">Form</li>
       </ol>
     </nav>
@@ -13,37 +13,52 @@
   <!-- End Page Title -->
 
   <section
-    class="section register min-vh-50   py-4" style=""
+    class="section register min-vh-50 d-flex flex-column align-items-center justify-content-center py-4"
   >
-    <div class="row ">
+    <div class="row justify-content-center">
       <div
-        class="col-xxl-10 col-lg-8 col-md-6 "
+        class="col-xl-12 col-lg-10 col-md-6 d-flex flex-column align-items-center justify-content-center"
       >
+        {{$meta := index .Data "metadata"}}
         <div class="card">
           <div class="card-body">
-            <h5 class="card-title">Search</h5>
+            <h5 class="card-title">{{$meta.Message}}</h5>
 
-      <div class="search-bar d-flex align-items-center justify-content-center">
-      {{$meta := index .Data "metadata"}}
-        <form
-          class="search-form needs-validation"
-          method="POST"
-          action="{{$meta.Url}}"
-          novalidate
-        >
-        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}" />
-          <input
-            type="text"
-            name="search"
-            placeholder="Search"
-            title="Enter search keyword"
-          />
-          <button type="submit" title="Search">
-            <i class="bi bi-search"></i>
-          </button>
-        </form>
-      </div>
-      <!-- End Search Bar -->
+            <!-- Product Entry Form -->
+            <form
+              action="{{$meta.Url}}"
+              method="post"
+              class="row g-3 needs-validation justify-content-center"
+              novalidate
+            >
+              <input type="hidden" name="csrf_token" value="{{.CSRFToken}}" />
+              <div class="row mt-4">
+              <small id="errorinfo" class="text-danger mb-2"></small>
+                <div class="col-6">
+                  {{with .Form.Errors.Get "serial"}}
+                  <label class="text-danger">{{.}}</label>
+                  {{end}}
+                  <input
+                    type="text"
+                    name="serial"
+                    class="form-control"
+                    placeholder="Serial"
+                    aria-label="Serial"
+                    id="serial"
+                    value=""
+                    required
+                  />
+                  <div class="invalid-feedback">Please enter serial number!</div>
+                </div>
+              
+              <div class="col-4">
+                <button id="btn-Serial" class="btn btn-primary w-100" type="submit">
+                  {{$meta.Button}}
+                </button>
+              </div>
+            </form>
+            <!-- End General Form Elements -->
+          </div>
         </div>
       </div>
     </div>

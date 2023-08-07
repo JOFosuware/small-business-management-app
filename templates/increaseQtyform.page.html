@@ -1,0 +1,85 @@
+{{template "admin" .}} {{define "content"}}
+<main id="main" class="main">
+  <div class="pagetitle">
+    <h1>Product Form</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li>
+        <li class="breadcrumb-item">Quantity</li>
+        <li class="breadcrumb-item active">Form</li>
+      </ol>
+    </nav>
+  </div>
+  <!-- End Page Title -->
+
+  <section
+    class="section register min-vh-50 d-flex flex-column align-items-center justify-content-center py-4"
+  >
+    <div class="row justify-content-center">
+      <div
+        class="col-xl-8 col-lg-10 col-md-6 d-flex flex-column align-items-center justify-content-center"
+      >
+        {{$meta := index .Data "metadata"}}
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">{{$meta.Message}}</h5>
+
+            <!-- Product Entry Form -->
+            <form
+              action="{{$meta.Url}}"
+              method="post"
+              class="row g-3 needs-validation justify-content-center"
+              novalidate
+            >
+            
+              <input type="hidden" name="csrf_token" value="{{.CSRFToken}}" />
+              <div class="row mt-4">
+              <small id="errorinfo" class="text-danger mb-2"></small>
+                <div class="col">
+                  {{with .Form.Errors.Get "serial"}}
+                  <label class="text-danger">{{.}}</label>
+                  {{end}}
+                  <input
+                    type="text"
+                    name="serial"
+                    class="form-control"
+                    placeholder="Serial"
+                    aria-label="Serial"
+                    id="serial"
+                    value=""
+                    required
+                  />
+                  <div class="invalid-feedback">Please enter customer Id!</div>
+                </div>
+                <div class="col-6">
+                    {{with .Form.Errors.Get "quantity"}}
+                        <label class="text-danger">{{.}}</label>
+                    {{end}}
+                    <input 
+                    class="form-control" 
+                    name="quantity"
+                    placeholder="Quantity"
+                    id="quantity"
+                    type="text" 
+                    value="" 
+                    aria-label="Quantity" 
+                    >
+                  </div>
+                  <small id="balErr" class="text-danger"></small>
+              </div>
+              
+              <div class="col-7">
+                <button id="btn-Qty" class="btn btn-primary w-100" type="submit">
+                  {{$meta.Button}}
+                </button>
+              </div>
+            </form>
+            <!-- End General Form Elements -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<!-- End #main -->
+{{end}}

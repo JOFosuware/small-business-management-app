@@ -14,7 +14,7 @@ func Routes(app *config.AppConfig) http.Handler {
 	mux := chi.NewRouter()
 
 	mux.Use(chiMiddleware.Recoverer)
-	//mux.Use(middleware.NoSurf)
+	mux.Use(middleware.NoSurf)
 	mux.Use(middleware.SessionLoad)
 
 	mux.Get("/", handlers.Repo.Home)
@@ -38,6 +38,8 @@ func Routes(app *config.AppConfig) http.Handler {
 		mux.Post("/edit-product", handlers.Repo.UpdateProduct)
 		mux.Get("/delete-product", handlers.Repo.SearchProduct)
 		mux.Post("/delete-product", handlers.Repo.DeleteProduct)
+		mux.Get("/increase-qty", handlers.Repo.IncreaseQtyForm)
+		mux.Post("/increase-qty", handlers.Repo.PostIncreaseQty)
 
 		//Contract Route
 		mux.Get("/add-contract", handlers.Repo.CustomerForm)
@@ -53,6 +55,8 @@ func Routes(app *config.AppConfig) http.Handler {
 		mux.Get("/edit-item", handlers.Repo.ItemForm)
 		mux.Post("/edit-item", handlers.Repo.UpdateItem)
 		mux.Get("/pay", handlers.Repo.PaymentForm)
+		mux.Post("/pay", handlers.Repo.PostPayments)
+		mux.Get("/generate-receipt", handlers.Repo.ReceiptPage)
 	})
 
 	return mux

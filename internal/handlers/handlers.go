@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -359,17 +360,22 @@ func (m *Repository) SearchProduct(w http.ResponseWriter, r *http.Request) {
 		metaData := models.FormMetaData{
 			Url:     "/admin/edit-form",
 			Section: "Product",
+			Message: "Search Product",
+			Button:  "Search",
 		}
 		data["metadata"] = metaData
 	} else {
 		metaData := models.FormMetaData{
 			Url:     "/admin/delete-product",
 			Section: "Product",
+			Message: "Enter Product Serial",
+			Button:  "Delete",
 		}
 		data["metadata"] = metaData
 	}
 	render.Template(w, r, "editproduct.page.html", &models.TemplateData{
 		Data: data,
+		Form: forms.New(nil),
 	})
 }
 
@@ -384,7 +390,7 @@ func (m *Repository) EditProductForm(w http.ResponseWriter, r *http.Request) {
 	}
 
 	form := forms.New(r.PostForm)
-	form.Required("search")
+	form.Required("serial")
 
 	if !form.Valid() {
 		m.App.Session.Put(r.Context(), "error", "form field can't be empty")
@@ -395,11 +401,11 @@ func (m *Repository) EditProductForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	p, err := m.DB.FetchProduct(r.Form.Get("search"))
+	p, err := m.DB.FetchProduct(r.Form.Get("serial"))
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "No product with such serial number")
 		http.Redirect(w, r, "/admin/search-product", http.StatusSeeOther)
-		fmt.Println("Error Querying database ", err)
+		//fmt.Println("Error Querying database ", err)
 		return
 	}
 
@@ -417,7 +423,7 @@ func (m *Repository) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	form := forms.New(r.PostForm)
-	form.Required("search")
+	form.Required("serial")
 
 	if !form.Valid() {
 		m.App.Session.Put(r.Context(), "error", "Invalid form data!")
@@ -425,7 +431,7 @@ func (m *Repository) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = m.DB.DeleteProduct(r.Form.Get("search"))
+	err = m.DB.DeleteProduct(r.Form.Get("serial"))
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "No product with such serial number found")
 		http.Redirect(w, r, "/admin/delete-product", http.StatusSeeOther)
@@ -434,6 +440,84 @@ func (m *Repository) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 
 	m.App.Session.Put(r.Context(), "flash", "Product deleted successfully")
 	http.Redirect(w, r, "/admin/delete-product", http.StatusSeeOther)
+}
+
+// IncreaseQtyForm serves request for form for increasing product quantity
+func (m *Repository) IncreaseQtyForm(w http.ResponseWriter, r *http.Request) {
+	data := make(map[string]interface{})
+
+	metaData := models.FormMetaData{
+		Message: "Add Product Quantity",
+		Button:  "Post Quantity",
+		Url:     "/admin/increase-qty",
+		Section: "Product",
+	}
+
+	data["metadata"] = metaData
+
+	render.Template(w, r, "increaseQtyform.page.html", &models.TemplateData{
+		Form: forms.New(nil),
+		Data: data,
+	})
+}
+
+// PostIncreaseQty process product quantity addition request
+func (m *Repository) PostIncreaseQty(w http.ResponseWriter, r *http.Request) {
+	userId, ok := m.App.Session.Get(r.Context(), "user_id").(int)
+	data := make(map[string]interface{})
+	if !ok {
+		m.App.Session.Put(r.Context(), "error", "Failed to get user ID")
+		http.Redirect(w, r, "/admin/increase-qty", http.StatusSeeOther)
+		m.App.ErrorLog.Println("Failed to get user ID")
+		return
+	}
+
+	err := r.ParseForm()
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "can't process form")
+		http.Redirect(w, r, "/admin/increase-qty", http.StatusSeeOther)
+		log.Println(err)
+		return
+	}
+
+	qty, _ := strconv.Atoi(r.Form.Get("quantity"))
+	p := models.Product{
+		Serial: r.Form.Get("serial"),
+		Units:  int32(qty),
+		UserId: userId,
+	}
+
+	metaData := models.FormMetaData{
+		Message: "Add Product Quantity",
+		Button:  "Post Quantity",
+		Url:     "/admin/increase-qty",
+		Section: "Product",
+	}
+	data["product"] = p
+	data["metadata"] = metaData
+
+	form := forms.New(r.PostForm)
+	form.Required("serial", "quantity")
+	if !form.Valid() {
+		render.Template(w, r, "increaseQtyform.page.html", &models.TemplateData{
+			Form: form,
+			Data: data,
+		})
+	}
+
+	err = m.DB.IncreaseQuantity(p)
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "Failed to insert customer items purchased")
+		http.Redirect(w, r, "/admin/increase-qty", http.StatusSeeOther)
+		m.App.ErrorLog.Println(err)
+		return
+	}
+
+	m.App.Session.Put(r.Context(), "flash", fmt.Sprintf("Product with serial number %s quantity increased!", p.Serial))
+	render.Template(w, r, "increaseQtyform.page.html", &models.TemplateData{
+		Form: form,
+		Data: data,
+	})
 }
 
 // Contract Section handles Contract processing
@@ -508,6 +592,7 @@ func (m *Repository) PostCustomer(w http.ResponseWriter, r *http.Request) {
 		HouseAddress: hAddress,
 		Location:     location,
 		Landmark:     landmark,
+		Status:       "on_contract",
 		Agreement:    agreement,
 		UserId:       userId,
 	}
@@ -543,7 +628,7 @@ func (m *Repository) PostCustomer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cust, err = m.DB.InsertCustomer(c)
+	err = m.DB.InsertCustomer(c)
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "Customer information could not be inserted!")
 		http.Redirect(w, r, "/admin/add-contract", http.StatusSeeOther)
@@ -551,9 +636,9 @@ func (m *Repository) PostCustomer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data["customer"] = cust
-	m.App.Session.Put(r.Context(), "customer", cust)
-	m.App.Session.Put(r.Context(), "customerId", cust.CustomerId)
+	data["customer"] = c
+	m.App.Session.Put(r.Context(), "customer", c)
+	m.App.Session.Put(r.Context(), "customerId", c.CustomerId)
 	m.App.Session.Put(r.Context(), "flash", "Customer inserted successfully")
 	render.Template(w, r, "displayCustomer.page.html", &models.TemplateData{
 		Data: data,
@@ -595,6 +680,7 @@ func (m *Repository) UpdateCustomer(w http.ResponseWriter, r *http.Request) {
 		HouseAddress: hAddress,
 		Location:     location,
 		Landmark:     landmark,
+		Status:       "on_contract",
 		Agreement:    agreement,
 		UserId:       userId,
 	}
@@ -633,7 +719,7 @@ func (m *Repository) UpdateCustomer(w http.ResponseWriter, r *http.Request) {
 	data["customer"] = c
 	m.App.Session.Put(r.Context(), "customer", c)
 	m.App.Session.Put(r.Context(), "customerId", c.CustomerId)
-	m.App.Session.Put(r.Context(), "flash", "Customer inserted successfully")
+	m.App.Session.Put(r.Context(), "flash", "Customer updated successfully")
 	render.Template(w, r, "displayCustomer.page.html", &models.TemplateData{
 		Data: data,
 	})
@@ -650,7 +736,7 @@ func (m *Repository) GetWitnessForm(w http.ResponseWriter, r *http.Request) {
 			Url:     "/admin/update-witness",
 			Section: "Contract",
 		}
-		m.App.InfoLog.Println("witness data in witnessform", witn)
+
 		data["witness"] = witn
 		data["metadata"] = meta
 	} else {
@@ -720,7 +806,6 @@ func (m *Repository) PostWitness(w http.ResponseWriter, r *http.Request) {
 
 		data["witness"] = witn
 		data["metadata"] = meta
-
 		render.Template(w, r, "witnessform.page.html", &models.TemplateData{
 			Form: form,
 			Data: data,
@@ -745,9 +830,9 @@ func (m *Repository) PostWitness(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data["witness"] = wtn
-	m.App.Session.Put(r.Context(), "customer", wtn)
+	m.App.Session.Put(r.Context(), "witness", wtn)
 	m.App.Session.Put(r.Context(), "customerId", wtn.CustomerId)
-	m.App.Session.Put(r.Context(), "flash", "Customer inserted successfully")
+	m.App.Session.Put(r.Context(), "flash", "Witness information inserted successfully")
 	render.Template(w, r, "displayWitness.page.html", &models.TemplateData{
 		Data: data,
 	})
@@ -922,8 +1007,23 @@ func (m *Repository) PostItem(w http.ResponseWriter, r *http.Request) {
 		UserId:     userId,
 	}
 
+	prod := models.Product{
+		Serial: serial,
+		Units:  int32(qty),
+		UserId: userId,
+	}
+
 	err = m.DB.InsertItem(item)
 	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "Failed to insert customer items purchased")
+		http.Redirect(w, r, "/admin/add-item", http.StatusSeeOther)
+		m.App.ErrorLog.Println(err)
+		return
+	}
+
+	err = m.DB.DecreaseQuantity(prod)
+	if err != nil {
+		m.DB.DeleteProduct(item.Serial)
 		m.App.Session.Put(r.Context(), "error", "Failed to insert customer items purchased")
 		http.Redirect(w, r, "/admin/add-item", http.StatusSeeOther)
 		m.App.ErrorLog.Println(err)
@@ -1028,28 +1128,164 @@ func (m *Repository) PaymentForm(w http.ResponseWriter, r *http.Request) {
 	data := make(map[string]interface{})
 
 	if r.URL.Path == "/admin/edit-payment" {
-		cust, _ := m.App.Session.Get(r.Context(), "customer").(models.Customer)
+		pymt, _ := m.App.Session.Get(r.Context(), "payment").(models.Payments)
 		metaData := models.FormMetaData{
 			Section: "Contract",
 			Message: "Edit Payment Information",
-			Button:  "Update Payment",
+			Button:  "Patch Payment",
 			Url:     "/admin/update-payment",
 		}
 
-		data["customer"] = cust
+		data["payment"] = pymt
 		data["metadata"] = metaData
 	} else {
+		metaData := models.FormMetaData{
+			Section: "Contract",
+			Message: "Add Payment Information",
+			Button:  "Post Payment",
+			Url:     "/admin/pay",
+		}
+		data["payment"] = models.Customer{}
+		data["metadata"] = metaData
+	}
+
+	render.Template(w, r, "paymentform.page.html", &models.TemplateData{
+		Data: data,
+		Form: forms.New(nil),
+	})
+}
+
+// PostPayments handles the request for payment processing
+func (m *Repository) PostPayments(w http.ResponseWriter, r *http.Request) {
+	userId, ok := m.App.Session.Get(r.Context(), "user_id").(int)
+	if !ok {
+		m.App.Session.Put(r.Context(), "error", "Failed to get user ID")
+		http.Redirect(w, r, "/admin/pay", http.StatusSeeOther)
+		m.App.ErrorLog.Println("Failed to get user ID")
+		return
+	}
+	err := r.ParseForm()
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "can't process form")
+		http.Redirect(w, r, "/admin/pay", http.StatusSeeOther)
+		log.Println(err)
+		return
+	}
+
+	amount, _ := strconv.Atoi(r.Form.Get("payingamount"))
+	data := make(map[string]interface{})
+
+	p := models.Payments{
+		CustomerId: r.Form.Get("customerId"),
+		Month:      r.Form.Get("month"),
+		Amount:     int(amount),
+		UserId:     userId,
+	}
+
+	form := forms.New(r.Form)
+	form.Required("customerId", "month", "payingamount")
+	if !form.Valid() {
+		m.App.Session.Put(r.Context(), "error", "One of the fields is empty")
 		metaData := models.FormMetaData{
 			Section: "Contract",
 			Message: "Add Payment Information",
 			Button:  "Add Payment",
 			Url:     "/admin/pay",
 		}
-		data["customer"] = models.Customer{}
+		data["payment"] = p
 		data["metadata"] = metaData
+		render.Template(w, r, "paymentform.page.html", &models.TemplateData{
+			Form: form,
+			Data: data,
+		})
+		m.App.ErrorLog.Println("One of the fields is empty")
+		return
 	}
 
-	render.Template(w, r, "paymentform.page.html", &models.TemplateData{
+	err = m.DB.InsertPayment(p)
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "error inserting payments! try again.")
+		http.Redirect(w, r, "/admin/pay", http.StatusSeeOther)
+		m.App.ErrorLog.Println(err)
+		return
+	}
+
+	bal, _ := m.CalcCustomerDebt(p.CustomerId)
+
+	if bal == 0 {
+		c := models.Customer{
+			CustomerId: p.CustomerId,
+			Status:     "off_contract",
+			UserId:     userId,
+		}
+		m.DB.UpdateContactStatus(c)
+		data["payment"] = p
+		m.App.Session.Put(r.Context(), "payment", p)
+		m.App.Session.Put(r.Context(), "customerId", p.CustomerId)
+		m.App.Session.Put(r.Context(), "flash", "Customer has completed payment!")
+		render.Template(w, r, "displayPayment.page.html", &models.TemplateData{
+			Data: data,
+		})
+		return
+	}
+
+	data["payment"] = p
+	m.App.Session.Put(r.Context(), "payment", p)
+	m.App.Session.Put(r.Context(), "customerId", p.CustomerId)
+	m.App.Session.Put(r.Context(), "flash", "Customer's payment has been inserted!")
+	render.Template(w, r, "displayPayment.page.html", &models.TemplateData{
+		Data: data,
+	})
+}
+
+// CalcCustomerDebt calculates customer debt to the enterprise
+func (c *Repository) CalcCustomerDebt(customerId string) (int, error) {
+	if customerId == "" {
+		return 0, errors.New("customer ID not provided")
+	}
+
+	custDebt, err := c.DB.CustomerDebt(customerId)
+	if err != nil {
+		return 0, errors.New("customer debt information can't be retrieved")
+	}
+
+	if len(custDebt) == 0 {
+		return 0, fmt.Errorf("customer with this id: %s does not owe", customerId)
+	}
+
+	custPymt, err := c.DB.CustomerPayment(customerId)
+	if err != nil {
+		return 0, errors.New("customer payments information can't be retrieved")
+	}
+
+	amount := 0
+	if len(custPymt) != 0 {
+		for _, v := range custPymt {
+			amount += int(v.Amount)
+		}
+	}
+
+	balance := 0
+	for _, v := range custDebt {
+		balance += int(v.Balance)
+	}
+
+	balance -= amount
+	return balance, nil
+}
+
+// ReceiptPage handle request for receipt generation page
+func (m *Repository) ReceiptPage(w http.ResponseWriter, r *http.Request) {
+	data := make(map[string]any)
+	metaData := models.FormMetaData{
+		Section: "Contract",
+		Message: "Add Payment Information",
+		Button:  "Add Payment",
+		Url:     "/admin/generate-receipt",
+	}
+
+	data["metadata"] = metaData
+	render.Template(w, r, "terminateAgreeM.page.html", &models.TemplateData{
 		Data: data,
 		Form: forms.New(nil),
 	})

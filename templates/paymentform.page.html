@@ -32,9 +32,8 @@
               novalidate
             >
               <input type="hidden" name="csrf_token" value="{{.CSRFToken}}" />
-              <input type="hidden" name="cust_id" value="" />
               <div class="row mt-4">
-              <span id="errorinfo" class="text-danger"></span>
+              <small id="errorinfo" class="text-danger mb-2"></small>
                 <div class="col">
                   {{with .Form.Errors.Get "customerId"}}
                   <label class="text-danger">{{.}}</label>
@@ -63,6 +62,7 @@
                     disabled readonly
                     >
                   </div>
+                  <small id="balErr" class="text-danger"></small>
               </div>
 
               <div class="row mt-4">
@@ -104,30 +104,12 @@
                   <div class="invalid-feedback">
                     Please enter customer's paying amount!
                   </div>
+                  <small id="pAmountInfo" class="text-danger"></small>
                 </div>
               </div>
-              <div class="row mt-4">
-                <div class="col">
-                    {{with .Form.Errors.Get "date"}}
-                    <label class="text-danger">{{.}}</label>
-                    {{end}}
-                    <input
-                      type="text"
-                      name="date"
-                      class="form-control"
-                      placeholder="Payment Date"
-                      aria-label="Payment date"
-                      id="date"
-                      value=""
-                      required
-                    />
-                    <div class="invalid-feedback">
-                      Please enter payment date!
-                    </div>
-                  </div>
-              </div>
+              
               <div class="col-7">
-                <button class="btn btn-primary w-100" type="submit">
+                <button id="btn-addPay" class="btn btn-primary w-100" type="submit">
                   {{$meta.Button}}
                 </button>
               </div>
@@ -146,9 +128,12 @@
     <script>
         const custIdEl = document.getElementById("customerId")
         const balEl = document.getElementById("balance")
+        const pAmountEl = document.getElementById("payingamount")
         const errEl = document.getElementById("errorinfo")
+        const balErrEl = document.getElementById("balErr")
+        const addPayBtn = document.getElementById("btn-addPay")
 
-        custIdEl.addEventListener("change", function(){
+        custIdEl.addEventListener("focusout", function(){
 
             const apiUrl = `http://localhost:8081/api/customer-debt/${custIdEl.value}`
             const requestHeader = {
@@ -166,11 +151,36 @@
                       throw new Error(res.message)
                     }
 
+                    errEl.innerText = ""
+
+                    if(res.debt === undefined){
+                      balErrEl.innerText = "Customer does not owe!"
+                      balEl.value = "0.00"
+                      addPayBtn.disabled = true
+                      return
+                    }
+
+                    addPayBtn.disabled = false
+                    balErrEl.innerText = ""
                     balEl.value = res.debt
                 })
                 .catch(err => {
                     errEl.innerText = err.message
+                    balEl.value = ""
                 })
+        })
+
+        pAmountEl.addEventListener("focusout", function(){
+          const balance = balEl.value
+          const payingAmount = pAmountEl.value
+          const pAmountInfoEl = document.getElementById("pAmountInfo")
+          if((parseInt(payingAmount) - parseInt(balance)) > 0) {
+            pAmountInfoEl.innerText = "Check the payment!, customer is overpaying."
+            addPayBtn.disabled = true
+          }else{
+            pAmountInfoEl.innerText = ""
+            addPayBtn.disabled = false
+          }
         })
     </script>
 {{end}}

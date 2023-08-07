@@ -1,0 +1,93 @@
+{{template "admin" .}} {{define "content"}}
+<main id="main" class="main">
+  <div class="pagetitle">
+    <h1>Contract Satisfaction</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+        <li class="breadcrumb-item">Contract</li>
+        <li class="breadcrumb-item active">Satisfaction</li>
+      </ol>
+    </nav>
+  </div>
+  <!-- End Page Title -->
+
+  <section class="section">
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Contract Completion Reciept</h5>
+            <!-- Table with stripped rows -->
+            <div id="sect-generate" class="row d-flex justify-content-center">
+                <small class="text-center text-info mb-3 col-12">Customer has fully satisfy the contract</small>
+                <div class="col-12 d-flex justify-content-center">
+                    <a href="#" id="btn-receipt" class="btn btn-primary w-25 mb-3">
+                        Generate Reciept
+                    </a>
+                </div>              
+              <a href="/admin/pay" class="btn btn-outline-dark w-25">
+                Add Payment
+              </a>
+            </div>
+
+            <form 
+                  id="form-generate"
+                  action="/admin/generate-receipt" 
+                  method="post"
+                  class="row g-3 needs-validation justify-content-center d-none"
+                  novalidate
+                >
+                    <div class="col-5">
+                      <div class="">
+                        {{with .Form.Errors.Get "customerId"}}
+                        <label class="text-danger">{{.}}</label>
+                        {{end}}
+                        <input
+                          type="text"
+                          name="customerId"
+                          class="form-control"
+                          placeholder="Customer ID"
+                          aria-label="Customer ID"
+                          id="customerId"
+                          value=""
+                          required
+                        />
+                        <div class="invalid-feedback">
+                          Please enter customer's ID!
+                        </div>
+                        <small id="IDInfo" class="text-danger"></small>
+                      </div>
+                    </div>
+                  
+                  <div class="col-5">
+                    <button id="btn-generate" class="btn btn-primary " type="submit">
+                        Generate
+                    </button>
+                  </div>
+                </form>
+            <!-- End Table with stripped rows -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<!-- End #main -->
+{{end}}
+
+{{define "js"}}
+
+<script>
+  const generateSect = document.getElementById("sect-generate")
+  const generateForm = document.getElementById("form-generate")
+  const receiptBtn = document.getElementById("btn-receipt")
+
+  receiptBtn.addEventListener("click", function(){
+    generateForm.classList.add("d-none")
+    generateSect.classList.remove("d-none")
+
+    console.log("Receipt button clicked!s")
+  })
+</script>
+{{end}}

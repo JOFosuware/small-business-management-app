@@ -53,6 +53,7 @@ func run() (*driver.DB, error) {
 	gob.Register(models.Witness{})
 	gob.Register([]models.Product{})
 	gob.Register(models.Item{})
+	gob.Register(models.Payments{})
 
 	// read flags
 	inProduction := flag.Bool("production", true, "application is in production")

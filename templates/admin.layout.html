@@ -55,6 +55,11 @@
 
     <!-- Template Main CSS File -->
     <link href="/static/NiceAdmin/assets/css/style.css" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="/static/css/notie.min.css"
+    />
 
     <!-- =======================================================
   * Template Name: NiceAdmin
@@ -344,7 +349,7 @@
               </li>
 
               <li>
-                <a class="dropdown-item d-flex align-items-center" href="#">
+                <a class="dropdown-item d-flex align-items-center" href="/logout">
                   <i class="bi bi-box-arrow-right"></i>
                   <span>Sign Out</span>
                 </a>
@@ -393,7 +398,12 @@
             </li>
             <li>
               <a href="/admin/search-product" class="{{if or (eq $meta.Url "/admin/edit-product") (eq $meta.Url "/admin/edit-form")}} active {{end}}">
-                <i class="bi bi-circle"></i><span>Update Product</span>
+                <i class="bi bi-circle"></i><span>Edit Product</span>
+              </a>
+            </li>
+            <li>
+              <a href="/admin/increase-qty" class="{{if eq $meta.Url "/admin/increase-qty"}} active {{end}}">
+                <i class="bi bi-circle"></i><span>Increase Quantity</span>
               </a>
             </li>
             <li>
@@ -436,8 +446,8 @@
               </a>
             </li>
             <li>
-              <a href="/admin/complete-contract" class="{{if (eq $meta.Url "/admin/complete-contract")}} active {{end}}">
-                <i class="bi bi-circle"></i><span>Complete Contract</span>
+              <a href="/admin/generate-receipt" class="{{if (eq $meta.Url "/admin/generate-receipt")}} active {{end}}">
+                <i class="bi bi-circle"></i><span>Generate Receipt</span>
               </a>
             </li>
              <li>
@@ -743,8 +753,8 @@
 
     <!-- Template Main JS File -->
     <script src="/static/NiceAdmin/assets/js/main.js"></script>
-    <script src="https://unpkg.com/notie"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <script src="/static/js/notie.min.js"></script>
+    <script src="/static/js/sweetalert.min.js"></script>
     <script src="/static/js/app.js"></script>
 
     {{block "js" .}}
@@ -757,6 +767,8 @@
           notie.alert({
               type: msgType,
               text: msg,
+              time: 5,
+              position: ["top", "bottom"]
           })
       }
 
@@ -770,15 +782,15 @@
       }
 
       {{with .Error}}
-      notify("{{.}}", "error")
+        notify("{{.}}", "error")
       {{end}}
 
       {{with .Flash}}
-      notify("{{.}}", "success")
+        notify("{{.}}", "success")
       {{end}}
 
       {{with .Warning}}
-      notify("{{.}}", "warning")
+        notify("{{.}}", "warning")
       {{end}}
     </script>
   </body>
