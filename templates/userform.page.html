@@ -1,0 +1,117 @@
+{{template "admin" .}} {{define "content"}}
+<main id="main" class="main">
+  <div class="pagetitle">
+    <h1>User Form</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li>
+        <li class="breadcrumb-item">User</li>
+        <li class="breadcrumb-item active">Form</li>
+      </ol>
+    </nav>
+  </div>
+  <!-- End Page Title -->
+
+  <section
+    class="section register min-vh-50 d-flex flex-column align-items-center justify-content-center py-4"
+  >
+    <div class="row justify-content-center">
+      <div
+        class="col-xl-8 col-lg-10 col-md-6 d-flex flex-column align-items-center justify-content-center"
+      >
+        {{$meta := index .Data "metadata"}} {{$u := index .Data "usr"}}
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">{{$meta.Message}}</h5>
+
+            <!-- Product Entry Form -->
+            <form
+              action="{{$meta.Url}}"
+              method="post"
+              class="row g-3 needs-validation justify-content-center"
+              novalidate
+            >
+              <input type="hidden" name="csrf_token" value="{{.CSRFToken}}" />
+              <div class="row mt-4">
+                <div class="col">
+                  {{with .Form.Errors.Get "firstname"}}
+                  <label class="text-danger">{{.}}</label>
+                  {{end}}
+                  <input
+                    type="text"
+                    name="firstname"
+                    class="form-control"
+                    placeholder="First name"
+                    aria-label="First name"
+                    id="firstName"
+                    value="{{$u.FirstName}}"
+                    required
+                  />
+                  <div class="invalid-feedback">Please enter user's firstname!</div>
+                </div>
+                <div class="col">
+                  {{with .Form.Errors.Get "lastname"}}
+                  <label class="text-danger">{{.}}</label>
+                  {{end}}
+                  <input
+                    type="text"
+                    name="lastname"
+                    class="form-control"
+                    placeholder="Last name"
+                    aria-label="Last name"
+                    id="LastName"
+                    value="{{$u.LastName}}"
+                    required
+                  />
+                  <div class="invalid-feedback">Please enter user's lastname!</div>
+                </div>
+              </div>
+
+              <div class="row mt-4">
+                <div class="col">
+                  {{with .Form.Errors.Get "username"}}
+                  <label class="text-danger">{{.}}</label>
+                  {{end}}
+                  <input
+                    type="text"
+                    name="username"
+                    class="form-control"
+                    placeholder="Username"
+                    aria-label="Username"
+                    id="userName"
+                    value="{{$u.Username}}"
+                    required
+                  />
+                  <div class="invalid-feedback">
+                    Please enter username!
+                  </div>
+                </div>
+                <div class="col">
+                  {{with .Form.Errors.Get "accesslevel"}}
+                  <label class="text-danger">{{.}}</label>
+                  {{end}} {{if $u.AccessLevel}}
+                  <label class="text-danger">Choose user type</label>
+                  {{end}}
+                  <select id="accessLevel" name="accesslevel" class="form-select">
+                    <option selected>Choose user type</option>
+                    <option value="superuser">Superuser</option>
+                    <option value="user">User</option>
+                  </select>
+                  <div class="invalid-feedback">Please choose user type!</div>
+                </div>
+              </div>
+              <div class="col-7">
+                <button class="btn btn-primary w-100" type="submit">
+                  {{$meta.Button}}
+                </button>
+              </div>
+            </form>
+            <!-- End General Form Elements -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<!-- End #main -->
+{{end}}

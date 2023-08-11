@@ -190,6 +190,45 @@ ALTER SEQUENCE public.purchased_oncredit_id_seq OWNED BY public.purchased_oncred
 
 
 --
+-- Name: purchases; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.purchases (
+    id integer NOT NULL,
+    serial character varying(255) DEFAULT ''::character varying NOT NULL,
+    quantity integer NOT NULL,
+    amount integer NOT NULL,
+    user_id integer NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+ALTER TABLE public.purchases OWNER TO postgres;
+
+--
+-- Name: purchases_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.purchases_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.purchases_id_seq OWNER TO postgres;
+
+--
+-- Name: purchases_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.purchases_id_seq OWNED BY public.purchases.id;
+
+
+--
 -- Name: schema_migration; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -209,8 +248,8 @@ CREATE TABLE public.users (
     first_name character varying(255) DEFAULT ''::character varying NOT NULL,
     last_name character varying(255) DEFAULT ''::character varying NOT NULL,
     user_name character varying(255) DEFAULT ''::character varying NOT NULL,
-    email character varying(255) NOT NULL,
     password character varying(60) NOT NULL,
+    access_level character varying(255) NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
@@ -310,6 +349,13 @@ ALTER TABLE ONLY public.purchased_oncredit ALTER COLUMN id SET DEFAULT nextval('
 
 
 --
+-- Name: purchases id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.purchases ALTER COLUMN id SET DEFAULT nextval('public.purchases_id_seq'::regclass);
+
+
+--
 -- Name: users id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -353,6 +399,14 @@ ALTER TABLE ONLY public.products
 
 ALTER TABLE ONLY public.purchased_oncredit
     ADD CONSTRAINT purchased_oncredit_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: purchases purchases_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.purchases
+    ADD CONSTRAINT purchases_pkey PRIMARY KEY (id);
 
 
 --

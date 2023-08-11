@@ -14,27 +14,21 @@ func (m *postgresDBRepo) AllUsers() bool {
 }
 
 // Authenticate authenticates a user
-func (m *postgresDBRepo) Authenticate(username, password string) (int, string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
+func (m *postgresDBRepo) Authenticate(username, password string) (models.User, error) {
 
-	var id int
-	var hashedPassword string
-
-	row := m.DB.QueryRowContext(ctx, "select id, password from users where user_name = $1", username)
-	err := row.Scan(&id, &hashedPassword)
+	u, err := m.FetchUser(username)
 	if err != nil {
-		return id, "", err
+		return models.User{}, err
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+	err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
 	if err == bcrypt.ErrMismatchedHashAndPassword {
-		return 0, "", errors.New("incorrect password")
+		return models.User{}, errors.New("incorrect password")
 	} else if err != nil {
-		return 0, "", err
+		return models.User{}, err
 	}
 
-	return id, hashedPassword, nil
+	return u, nil
 }
 
 // InsertUser add users to the database
@@ -45,15 +39,15 @@ func (m *postgresDBRepo) InsertUser(u models.User) (int, error) {
 	var newID int
 
 	query := `
-		insert into users (first_name, last_name, user_name, email,
-		 password, created_at, updated_at) values ($1, $2, $3, $4, $5, $6, $7) returning id
+		insert into users (first_name, last_name, user_name,
+		 password, access_level, created_at, updated_at) values ($1, $2, $3, $4, $5, $6, $7) returning id
 	`
 	err := m.DB.QueryRowContext(ctx, query,
 		u.FirstName,
 		u.LastName,
 		u.Username,
-		u.Email,
 		u.Password,
+		u.AccessLevel,
 		u.CreatedAt,
 		u.UpdatedAt,
 	).Scan(&newID)
@@ -71,9 +65,21 @@ func (m *postgresDBRepo) FetchUser(username string) (models.User, error) {
 	defer cancel()
 
 	u := models.User{}
+	quary := `select 
+				id, first_name, last_name, user_name, password, access_level, created_at, updated_at
+		      from users where user_name = $1`
 
-	row := m.DB.QueryRowContext(ctx, "select first_name, last_name, user_name from users where user_name = $1", username)
-	err := row.Scan(&u.FirstName, &u.LastName, &u.Username)
+	row := m.DB.QueryRowContext(ctx, quary, username)
+	err := row.Scan(
+		&u.ID,
+		&u.FirstName,
+		&u.LastName,
+		&u.Username,
+		&u.Password,
+		&u.AccessLevel,
+		&u.CreatedAt,
+		&u.UpdatedAt,
+	)
 	if err != nil {
 		return models.User{}, err
 	}
@@ -693,4 +699,47 @@ func (m *postgresDBRepo) CustomerPayment(customerId string) ([]models.Payments, 
 	}
 
 	return custPayment, nil
+}
+
+// InsertPurchase store the purchase made by a customer directly
+func (m *postgresDBRepo) InsertPurchase(p models.Purchases) (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var id int
+	query := `insert into purchases 
+				(serial, quantity, amount, user_id, created_at, updated_at) 
+			  values 
+			  	($1, $2, $3, $4, $5, $6) 
+			  returning id
+	`
+	err := m.DB.QueryRowContext(ctx, query,
+		p.Serial,
+		p.Quantity,
+		p.Amount,
+		p.UserId,
+		time.Now(),
+		time.Now(),
+	).Scan(&id)
+
+	if err != nil {
+		return id, err
+	}
+
+	return id, nil
+}
+
+// DeletePurchase removes purchases from the database by its id number
+func (m *postgresDBRepo) DeletePurchase(id int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := "delete from purchases where id = $1"
+
+	_, err := m.DB.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

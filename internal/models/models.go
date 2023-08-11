@@ -6,13 +6,14 @@ import (
 
 // User Data struct
 type User struct {
-	FirstName string
-	LastName  string
-	Username  string
-	Email     string
-	Password  string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID          int
+	FirstName   string
+	LastName    string
+	Username    string
+	Password    string
+	AccessLevel string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 // Product Data struct
@@ -34,6 +35,13 @@ type FormMetaData struct {
 	Button  string
 	Url     string
 	Section string
+}
+
+type PageTitle struct {
+	Main        string
+	Sub         string
+	Description string
+	PlaceHolder string
 }
 
 // Client data struct
@@ -97,4 +105,13 @@ type Payments struct {
 	UserId     int
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
+}
+
+type Purchases struct {
+	Serial    string
+	Quantity  int
+	Amount    int
+	UserId    int
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }

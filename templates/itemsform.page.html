@@ -1,12 +1,13 @@
 {{template "admin" .}} {{define "content"}}
 <main id="main" class="main">
+  {{$title := index .Data "pageTitle"}}
   <div class="pagetitle">
-    <h1>Contract Form</h1>
+    <h1>{{$title.Main}}</h1>
     <nav>
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="/admin/dashboard">Home</a></li>
-        <li class="breadcrumb-item">Contract</li>
-        <li class="breadcrumb-item active">Add Items</li>
+        <li class="breadcrumb-item">{{$title.Sub}}</li>
+        <li class="breadcrumb-item active">{{$title.Description}}</li>
       </ol>
     </nav>
   </div>
@@ -34,6 +35,7 @@
             >
               <input type="hidden" name="csrf_token" value="{{.CSRFToken}}" />
               <input type="hidden" name="cust_id" value="{{$custId}}" />
+              <input type="hidden" name="amount" id="amount" value="" />
               {{range $prod := $prods}}
                 <input type="hidden" id="{{$prod.Serial}}" value="{{$prod.Price}}" />
               {{end}}
@@ -87,7 +89,7 @@
                     <div class="invalid-feedback">Please enter a quantity!</div>
                     <small id="stock-alert" class="text-danger"></small>
                   </div>
-                  <div class="col-6 mt-3">
+                  <div class="col-6 mt-3 {{if eq $title.Sub "Purchase"}} d-none {{end}}">
                     {{with .Form.Errors.Get "deposit"}}
                     <label class="text-danger">{{.}}</label>
                     {{end}}
@@ -96,10 +98,10 @@
                       name="deposit"
                       value="{{$itm.Deposit}}"
                       class="form-control"
-                      placeholder="Deposit Amount"
-                      aria-label="Deposit Amount"
+                      placeholder="{{$title.PlaceHolder}}"
+                      aria-label="{{$title.PlaceHolder}}"
                       id="deposit"
-                      required
+                      {{if ne $title.Sub "Purchase"}} required {{end}}
                     />
                     <div class="invalid-feedback">Please enter a deposit!</div>
                   </div>
@@ -140,6 +142,7 @@
                   const prod = prods[i]
                   if (serial === prod.serial) {
                     document.getElementById("price").value = "₵" + prod.price
+                    document.getElementById("amount").value = prod.price
                     units = prod.units
                     if (parseInt(units) === 0) {
                       stockAlert.innerText = "We are out of Stock for this Product!"
@@ -155,6 +158,7 @@
                 }
             }else {
                 document.getElementById("price").value = ""
+                document.getElementById("amount").value = ""
                 stockAlert.innerText = ""
                 btnItem.disabled = false
                 inputUnitDiv.value = ""
@@ -174,6 +178,7 @@
             price = price.replace("₵", "")
             
             document.getElementById("price").value = "₵" + (parseInt(price) * parseInt(inputUnit))
+            document.getElementById("amount").value = parseInt(price) * parseInt(inputUnit)
           }
         })
     </script>

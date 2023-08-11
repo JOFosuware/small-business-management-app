@@ -6,7 +6,7 @@ type DatabaseRepo interface {
 	AllUsers() bool
 
 	InsertUser(u models.User) (int, error)
-	Authenticate(username, password string) (int, string, error)
+	Authenticate(username, password string) (models.User, error)
 	FetchUser(username string) (models.User, error)
 	InsertProduct(p models.Product) (models.Product, error)
 	UpdateProduct(models.Product) error
@@ -28,4 +28,6 @@ type DatabaseRepo interface {
 	CustomerDebt(customerId string) ([]models.Item, error)
 	InsertPayment(p models.Payments) error
 	CustomerPayment(customerId string) ([]models.Payments, error)
+	InsertPurchase(models.Purchases) (int, error)
+	DeletePurchase(int) error
 }

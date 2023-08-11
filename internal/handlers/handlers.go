@@ -82,74 +82,189 @@ func (m *Repository) PostLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, _, err := m.DB.Authenticate(username, password)
+	user, err := m.DB.Authenticate(username, password)
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "Invalid login credentials")
+		m.App.ErrorLog.Println(err)
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
-	m.App.Session.Put(r.Context(), "user_id", id)
+	m.App.Session.Put(r.Context(), "user_id", user.ID)
+	m.App.Session.Put(r.Context(), "user", user)
 	m.App.Session.Put(r.Context(), "flash", "Logged in successfully")
 	http.Redirect(w, r, "/admin/dashboard", http.StatusSeeOther)
 }
 
-// AddUser ceates user
-func (m *Repository) AddUser(w http.ResponseWriter, r *http.Request) {
+// User
+// UserForm handles request for user form
+func (m *Repository) UserForm(w http.ResponseWriter, r *http.Request) {
+	data := make(map[string]interface{})
+
+	if r.URL.Path == "/admin/edit-user" {
+		user, _ := m.App.Session.Get(r.Context(), "user").(models.User)
+		metaData := models.FormMetaData{
+			Section: "User",
+			Message: "Edit User Information",
+			Button:  "Update User",
+			Url:     "/edit-user",
+		}
+
+		data["usr"] = user
+		data["metadata"] = metaData
+	} else {
+		metaData := models.FormMetaData{
+			Section: "User",
+			Message: "Add User Information",
+			Button:  "Create User",
+			Url:     "/signup",
+		}
+		data["usr"] = models.User{}
+		data["metadata"] = metaData
+	}
+
+	render.Template(w, r, "userform.page.html", &models.TemplateData{
+		Data: data,
+		Form: forms.New(nil),
+	})
+}
+
+// PostUser ceates user
+func (m *Repository) PostUser(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		log.Println(err)
+		m.App.Session.Put(r.Context(), "error", "Can't processing form!")
+		http.Redirect(w, r, "/signup", http.StatusSeeOther)
+		m.App.ErrorLog.Println("Form Parse error", err)
+		return
 	}
 
 	firstName := r.Form.Get("firstname")
 	lastName := r.Form.Get("lastname")
 	username := r.Form.Get("username")
-	email := r.Form.Get("email")
-	password := r.Form.Get("password")
+	password := "OseePassword"
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		log.Println(err)
+		m.App.Session.Put(r.Context(), "error", "Couldn't process password! try again")
+		http.Redirect(w, r, "/signup", http.StatusSeeOther)
+		m.App.ErrorLog.Println("error hashing password", err)
 		return
 	}
 
 	user := models.User{
-		FirstName: firstName,
-		LastName:  lastName,
-		Username:  username,
-		Email:     email,
-		Password:  string(hashedPassword),
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		FirstName:   firstName,
+		LastName:    lastName,
+		Username:    username,
+		Password:    string(hashedPassword),
+		AccessLevel: r.Form.Get("accesslevel"),
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
 	}
 
 	form := forms.New(r.PostForm)
-	form.Required("firstname", "lastname", "username", "email", "password")
-	form.IsEmail("email")
+	form.Required("firstname", "lastname", "username")
 
 	if !form.Valid() {
-		log.Println("\nThe form must be filled correctly")
+		m.App.Session.Put(r.Context(), "error", "All fields need to be filled!")
+		http.Redirect(w, r, "/signup", http.StatusSeeOther)
+		m.App.ErrorLog.Println("empty form field", err)
 		return
 	}
 
 	u, err := m.DB.FetchUser(username)
 
 	if err != nil && err.Error() != "sql: no rows in result set" {
-		log.Println(err)
+		m.App.Session.Put(r.Context(), "error", "Internal server error! try again")
+		http.Redirect(w, r, "/signup", http.StatusSeeOther)
+		m.App.ErrorLog.Println(err)
 		return
 	}
 
 	if u.Username == username {
-		log.Println("\nUser already exists")
+		m.App.Session.Put(r.Context(), "error", "Username already exist!, choose another one")
+		http.Redirect(w, r, "/signup", http.StatusSeeOther)
 		return
 	}
 
 	_, err = m.DB.InsertUser(user)
 	if err != nil {
-		log.Println(err)
+		m.App.Session.Put(r.Context(), "error", "User couldn't be saved! try again")
+		http.Redirect(w, r, "/signup", http.StatusSeeOther)
+		m.App.ErrorLog.Println(err)
 		return
 	}
 
-	fmt.Printf("User: %s is inserted", user.Username)
+	m.App.Session.Put(r.Context(), "flash", fmt.Sprintf("User %s created!", u.Username))
+	http.Redirect(w, r, "/signup", http.StatusSeeOther)
+}
+
+// PostDeveloper ceates one superuser for the developer
+func (m *Repository) PostDeveloper(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "Can't processing form!")
+		http.Redirect(w, r, "/signup", http.StatusSeeOther)
+		m.App.ErrorLog.Println("Form Parse error", err)
+		return
+	}
+
+	firstName := r.Form.Get("firstname")
+	lastName := r.Form.Get("lastname")
+	username := r.Form.Get("username")
+	password := r.Form.Get("password")
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "Couldn't process password! try again")
+		http.Redirect(w, r, "/signup", http.StatusSeeOther)
+		m.App.ErrorLog.Println("error hashing password", err)
+		return
+	}
+
+	user := models.User{
+		FirstName:   firstName,
+		LastName:    lastName,
+		Username:    username,
+		Password:    string(hashedPassword),
+		AccessLevel: r.Form.Get("accesslevel"),
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	}
+
+	form := forms.New(r.PostForm)
+	form.Required("firstname", "lastname", "username", "password")
+
+	if !form.Valid() {
+		m.App.Session.Put(r.Context(), "error", "All fields need to be filled!")
+		http.Redirect(w, r, "/signup", http.StatusSeeOther)
+		m.App.ErrorLog.Println("empty form field", err)
+		return
+	}
+
+	u, err := m.DB.FetchUser(username)
+
+	if err != nil && err.Error() != "sql: no rows in result set" {
+		m.App.Session.Put(r.Context(), "error", "Internal server error! try again")
+		http.Redirect(w, r, "/signup", http.StatusSeeOther)
+		m.App.ErrorLog.Println(err)
+		return
+	}
+
+	if u.Username == username {
+		m.App.Session.Put(r.Context(), "error", "Username already exist!, choose another one")
+		http.Redirect(w, r, "/signup", http.StatusSeeOther)
+		return
+	}
+
+	_, err = m.DB.InsertUser(user)
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "User couldn't be saved! try again")
+		http.Redirect(w, r, "/signup", http.StatusSeeOther)
+		m.App.ErrorLog.Println(err)
+		return
+	}
+
+	m.App.Session.Put(r.Context(), "flash", fmt.Sprintf("User %s created!", u.Username))
+	http.Redirect(w, r, "/signup", http.StatusSeeOther)
 }
 
 // Logout logs a user out
@@ -908,6 +1023,13 @@ func (m *Repository) ItemForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	pt := models.PageTitle{
+		Main:        "Contract Form",
+		Sub:         "Contract",
+		Description: "Add Item",
+		PlaceHolder: "Deposit Amount",
+	}
+
 	if r.URL.Path == "/admin/edit-item" {
 		itm, _ := m.App.Session.Get(r.Context(), "item").(models.Item)
 		metaData := models.FormMetaData{
@@ -916,6 +1038,8 @@ func (m *Repository) ItemForm(w http.ResponseWriter, r *http.Request) {
 			Url:     "/admin/edit-item",
 			Section: "Contract",
 		}
+
+		data["pageTitle"] = pt
 		data["item"] = itm
 		data["products"] = prods
 		data["customerId"] = custId
@@ -927,6 +1051,8 @@ func (m *Repository) ItemForm(w http.ResponseWriter, r *http.Request) {
 			Url:     "/admin/add-item",
 			Section: "Contract",
 		}
+
+		data["pageTitle"] = pt
 		data["products"] = prods
 		data["customerId"] = custId
 		data["metadata"] = metaData
@@ -1198,7 +1324,6 @@ func (m *Repository) PostPayments(w http.ResponseWriter, r *http.Request) {
 			Form: form,
 			Data: data,
 		})
-		m.App.ErrorLog.Println("One of the fields is empty")
 		return
 	}
 
@@ -1289,4 +1414,134 @@ func (m *Repository) ReceiptPage(w http.ResponseWriter, r *http.Request) {
 		Data: data,
 		Form: forms.New(nil),
 	})
+}
+
+// PurchaseForm handles item form request for purchase
+func (m *Repository) PurchaseForm(w http.ResponseWriter, r *http.Request) {
+	data := make(map[string]interface{})
+	custId, _ := m.App.Session.Get(r.Context(), "customerId").(string)
+
+	prods, err := m.DB.FetchAllProduct()
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "Server error, retry again")
+		http.Redirect(w, r, "/admin/add-purchase", http.StatusSeeOther)
+		return
+	}
+
+	pt := models.PageTitle{
+		Main:        "Purchase Form",
+		Sub:         "Purchase",
+		Description: "Add Purchase",
+		PlaceHolder: "Enter Amount",
+	}
+
+	if r.URL.Path == "/admin/edit-purchase" {
+		itm, _ := m.App.Session.Get(r.Context(), "item").(models.Item)
+		metaData := models.FormMetaData{
+			Message: "Edit Purchase",
+			Button:  "Patch Purchase",
+			Url:     "/admin/edit-purchase",
+			Section: "Purchase",
+		}
+		data["pageTitle"] = pt
+		data["item"] = itm
+		data["products"] = prods
+		data["customerId"] = custId
+		data["metadata"] = metaData
+	} else {
+		metaData := models.FormMetaData{
+			Message: "Select Product",
+			Button:  "Post Product",
+			Url:     "/admin/add-purchase",
+			Section: "Purchase",
+		}
+		data["pageTitle"] = pt
+		data["products"] = prods
+		data["customerId"] = custId
+		data["metadata"] = metaData
+	}
+
+	m.App.Session.Put(r.Context(), "products", prods)
+	render.Template(w, r, "itemsform.page.html", &models.TemplateData{
+		Form: forms.New(nil),
+		Data: data,
+	})
+}
+
+// Purchases
+// PostPurchase handle request for the processing of purchase
+func (m *Repository) PostPurchase(w http.ResponseWriter, r *http.Request) {
+	userId, ok := m.App.Session.Get(r.Context(), "user_id").(int)
+	data := make(map[string]interface{})
+	if !ok {
+		m.App.Session.Put(r.Context(), "error", "Failed to get user ID")
+		http.Redirect(w, r, "/admin/add-purchase", http.StatusSeeOther)
+		m.App.ErrorLog.Println("Failed to get user ID")
+		return
+	}
+
+	err := r.ParseForm()
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "can't process form")
+		http.Redirect(w, r, "/admin/add-purchase", http.StatusSeeOther)
+		m.App.ErrorLog.Println(err)
+		return
+	}
+
+	serial := r.Form.Get("serial")
+	quantity, _ := strconv.Atoi(r.Form.Get("quantity"))
+	amount, _ := strconv.Atoi(r.Form.Get("amount"))
+	prods, _ := m.App.Session.Pop(r.Context(), "products").([]models.Product)
+
+	form := forms.New(r.Form)
+
+	form.Required("cust_id", "serial", "quantity", "price")
+	if !form.Valid() {
+		metaData := models.FormMetaData{
+			Message: "Select Product",
+			Button:  "Post Product",
+			Url:     "/admin/add-item",
+			Section: "Contract",
+		}
+		data["products"] = prods
+		data["customerId"] = ""
+		data["metadata"] = metaData
+
+		render.Template(w, r, "itemsform.page.html", &models.TemplateData{
+			Form: form,
+			Data: data,
+		})
+	}
+
+	p := models.Purchases{
+		Serial:   serial,
+		Quantity: quantity,
+		Amount:   amount,
+		UserId:   userId,
+	}
+
+	id, err := m.DB.InsertPurchase(p)
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "Error inserting purchase! try again.")
+		http.Redirect(w, r, "/admin/add-purchase", http.StatusSeeOther)
+		m.App.ErrorLog.Println(err)
+		return
+	}
+
+	prod := models.Product{
+		Serial: serial,
+		Units:  int32(quantity),
+		UserId: userId,
+	}
+
+	err = m.DB.DecreaseQuantity(prod)
+	if err != nil {
+		m.DB.DeletePurchase(id)
+		m.App.Session.Put(r.Context(), "error", "Error inserting purchase! try again.")
+		http.Redirect(w, r, "/admin/add-purchase", http.StatusSeeOther)
+		return
+	}
+
+	m.App.Session.Put(r.Context(), "flash", "Customer's purchase is saved!")
+	http.Redirect(w, r, "/admin/add-purchase", http.StatusSeeOther)
 }
