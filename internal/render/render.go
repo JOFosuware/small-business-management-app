@@ -2,12 +2,14 @@ package render
 
 import (
 	"bytes"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	"path/filepath"
+	"time"
 
 	"github.com/jofosuware/small-business-management-app/internal/config"
 	"github.com/jofosuware/small-business-management-app/internal/models"
@@ -17,11 +19,29 @@ import (
 var app *config.AppConfig
 var pathToTemplates = "./templates"
 
-var functions = template.FuncMap{}
+var functions = template.FuncMap{
+	"humanDate":       HumanDate,
+	"formatDate":      FormatDate,
+	"convertToBase64": ConvertToBase64,
+}
 
 // NewRenderer sets the config for the templates package
 func NewRenderer(a *config.AppConfig) {
 	app = a
+}
+
+// ConvertToBase64 encodes bytes to base64 string
+func ConvertToBase64(bytes []byte) string {
+	return base64.StdEncoding.EncodeToString(bytes)
+}
+
+// HumanDate returns time in YYYY-MM-DD format
+func HumanDate(t time.Time) string {
+	return t.Format("02-01-2006 3:04 pm")
+}
+
+func FormatDate(t time.Time, f string) string {
+	return t.Format(f)
 }
 
 func AddDefaultData(td *models.TemplateData, r *http.Request) *models.TemplateData {

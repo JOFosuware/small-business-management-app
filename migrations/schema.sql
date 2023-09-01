@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 15.3 (Ubuntu 15.3-1.pgdg20.04+1)
--- Dumped by pg_dump version 15.3 (Ubuntu 15.3-1.pgdg20.04+1)
+-- Dumped from database version 15.4 (Ubuntu 15.4-1.pgdg20.04+1)
+-- Dumped by pg_dump version 15.4 (Ubuntu 15.4-1.pgdg20.04+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -26,19 +26,21 @@ SET default_table_access_method = heap;
 
 CREATE TABLE public.customers (
     id integer NOT NULL,
-    customer_id character varying(255) DEFAULT ''::character varying NOT NULL,
-    id_type character varying(255) DEFAULT ''::character varying NOT NULL,
-    first_name character varying(255) DEFAULT ''::character varying NOT NULL,
-    last_name character varying(255) DEFAULT ''::character varying NOT NULL,
-    house_address character varying(255) DEFAULT ''::character varying NOT NULL,
-    phone integer NOT NULL,
-    location character varying(255) DEFAULT ''::character varying NOT NULL,
-    landmark character varying(255) DEFAULT ''::character varying NOT NULL,
-    agreement character varying(255) DEFAULT 'No, I do not agree to the terms'::character varying NOT NULL,
-    contract_status character varying(255) DEFAULT ''::character varying NOT NULL,
-    user_id integer NOT NULL,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    customer_id character varying,
+    cust_image bytea,
+    id_type character varying,
+    card_image bytea,
+    first_name character varying,
+    last_name character varying,
+    house_address character varying,
+    phone integer,
+    location character varying,
+    landmark character varying,
+    agreement character varying,
+    contract_status character varying,
+    user_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
 );
 
 
@@ -153,15 +155,16 @@ ALTER SEQUENCE public.products_id_seq OWNED BY public.products.id;
 
 CREATE TABLE public.purchased_oncredit (
     id integer NOT NULL,
-    customer_id character varying(255) DEFAULT ''::character varying NOT NULL,
-    serial character varying(255) DEFAULT ''::character varying NOT NULL,
-    price integer NOT NULL,
-    quantity integer NOT NULL,
-    deposit integer NOT NULL,
-    balance integer NOT NULL,
-    user_id integer NOT NULL,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    customer_id character varying,
+    serial character varying,
+    price integer,
+    quantity integer,
+    deposit integer,
+    balance integer,
+    item_image bytea,
+    user_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
 );
 
 
@@ -245,13 +248,14 @@ ALTER TABLE public.schema_migration OWNER TO postgres;
 
 CREATE TABLE public.users (
     id integer NOT NULL,
-    first_name character varying(255) DEFAULT ''::character varying NOT NULL,
-    last_name character varying(255) DEFAULT ''::character varying NOT NULL,
-    user_name character varying(255) DEFAULT ''::character varying NOT NULL,
-    password character varying(60) NOT NULL,
-    access_level character varying(255) NOT NULL,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    first_name character varying,
+    last_name character varying,
+    user_name character varying,
+    password character varying,
+    user_image bytea,
+    access_level character varying,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
 );
 
 
@@ -285,14 +289,15 @@ ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 
 CREATE TABLE public.witness (
     id integer NOT NULL,
-    customer_id character varying(255) DEFAULT ''::character varying NOT NULL,
-    first_name character varying(255) DEFAULT ''::character varying NOT NULL,
-    last_name character varying(255) DEFAULT ''::character varying NOT NULL,
-    phone integer NOT NULL,
-    terms character varying(255) DEFAULT 'No, I do not agree to the terms'::character varying NOT NULL,
-    user_id integer NOT NULL,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    customer_id character varying,
+    first_name character varying,
+    last_name character varying,
+    phone integer,
+    terms character varying,
+    witness_image bytea,
+    user_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
 );
 
 

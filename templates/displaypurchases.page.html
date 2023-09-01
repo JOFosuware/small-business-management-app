@@ -1,0 +1,143 @@
+{{template "admin" .}} {{define "content"}}
+<main id="main" class="main">
+  <div class="pagetitle">
+    <h1>Purchase List</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+        <li class="breadcrumb-item">Purchase</li>
+        <li class="breadcrumb-item active">List</li>
+      </ol>
+    </nav>
+  </div>
+  <!-- End Page Title -->
+
+  <section class="section">
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Purchase List</h5>
+            <!-- Table with stripped rows -->
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Product Serial</th>
+                  <th>Quantity</th>
+                  <th>Date of Purchase</th>
+                  <th>Recorder <sup>user</sup></th>
+                </tr>
+              </thead>
+              <tbody id="listPurchases">
+                
+                {{range $p := index .Data "purchases"}}
+                    <tr>
+                        <td>{{$p.Serial}}</td>
+                        <td>{{$p.Quantity}}</td>
+                        <td>{{humanDate $p.CreatedAt}}</td>
+                        <td>{{$p.UserId}}</td>
+                    </tr>
+                {{end}}
+              </tbody>
+            </table>
+            <nav aria-label="Page navigation example">
+              <ul class="pagination justify-content-center">
+                <li id="prevGroup" class="page-item">
+                  <button id="prevPage" class="page-link" tabindex="-1" aria-disabled="true">Prev</button>
+                </li>
+                <li id="nextGroup" class="page-item">
+                  <button id="nextPage" class="page-link">Next</button>
+                </li>
+              </ul>
+            </nav>
+            <!-- End Table with stripped rows -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<!-- End #main -->
+{{end}}
+
+{{define "js"}}
+  <script>
+    const listPurchEl = document.getElementById("listPurchases")
+    const nextPage = document.getElementById("nextPage")
+    const prevPage = document.getElementById("prevPage")
+    const nextGroupEl = document.getElementById("nextGroup")
+    const prevGroupEl = document.getElementById("prevGroup")
+    let page = 1
+
+    if(page === 1) {
+      prevGroupEl.classList.add("disabled")
+    }else{
+      prevGroupEl.classList.remove("disabled")
+    }
+
+    nextPage.addEventListener("click", function(){
+      page++
+      fetch(`http://localhost:8081/api/list-purchases/${page}`)
+        .then(resp => resp.json())
+        .then(function(resp) {
+          if(resp.error === true){
+            throw new Error(resp.error)
+          }
+
+          if(resp.purchases.length < 6){
+            nextGroupEl.classList.add("disabled")
+            prevGroupEl.classList.remove("disabled")
+          }else{
+            nextGroupEl.classList.remove("disabled")
+          }
+
+          listPurchEl.innerHTML = ""
+          resp.purchases.forEach(function(p){
+            listPurchEl.innerHTML += `
+              <tr>
+                <td>${p.Serial}</td>
+                <td>${p.Quantity}</td>
+                <td>${p.CreatedAt}</td>
+                <td>${p.UserId}</td>
+              </tr>
+            `
+          })
+        }).catch(function(error){
+          notify(`${error.message}`, "warning")
+        })
+    })  
+    
+    prevPage.addEventListener("click", function(){
+      page--
+      fetch(`http://localhost:8081/api/list-purchases/${page}`)
+        .then(resp => resp.json())
+        .then(function(resp) {
+          if(resp.error === true){
+            throw new Error(resp.error)
+          }
+
+          if(page === 1){
+            nextGroupEl.classList.remove("disabled")
+            prevGroupEl.classList.add("disabled")
+          }else{
+            prevGroupEl.classList.remove("disabled")
+          }
+
+          listPurchEl.innerHTML = ""
+          resp.purchases.forEach(function(p){
+            listPurchEl.innerHTML += `
+              <tr>
+                <td>${p.Serial}</td>
+                <td>${p.Quantity}</td>
+                <td>${p.CreatedAt}</td>
+                <td>${p.UserId}</td>
+              </tr>
+            `
+          })
+        }).catch(function(error){
+          //notify(`${error.message}`, "warning")
+        })
+    })
+
+  </script>
+{{end}}

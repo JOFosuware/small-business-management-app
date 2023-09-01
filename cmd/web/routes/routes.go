@@ -14,15 +14,12 @@ func Routes(app *config.AppConfig) http.Handler {
 	mux := chi.NewRouter()
 
 	mux.Use(chiMiddleware.Recoverer)
-	//mux.Use(middleware.NoSurf)
+	mux.Use(middleware.NoSurf)
 	mux.Use(middleware.SessionLoad)
 
 	mux.Get("/", handlers.Repo.Home)
 	mux.Post("/login", handlers.Repo.PostLogin)
 	mux.Get("/logout", handlers.Repo.Logout)
-	mux.Get("/signup", handlers.Repo.UserForm)
-	mux.Get("/edit-user", handlers.Repo.UserForm)
-	mux.Post("/signup", handlers.Repo.PostUser)
 	mux.Post("/developer", handlers.Repo.PostDeveloper)
 
 	fileServer := http.FileServer(http.Dir("./static"))
@@ -43,6 +40,7 @@ func Routes(app *config.AppConfig) http.Handler {
 		mux.Post("/delete-product", handlers.Repo.DeleteProduct)
 		mux.Get("/increase-qty", handlers.Repo.IncreaseQtyForm)
 		mux.Post("/increase-qty", handlers.Repo.PostIncreaseQty)
+		mux.Get("/list-products/{page}", handlers.Repo.ListProducts)
 
 		//Contract Route
 		mux.Get("/add-contract", handlers.Repo.CustomerForm)
@@ -60,10 +58,24 @@ func Routes(app *config.AppConfig) http.Handler {
 		mux.Get("/pay", handlers.Repo.PaymentForm)
 		mux.Post("/pay", handlers.Repo.PostPayments)
 		mux.Get("/generate-receipt", handlers.Repo.ReceiptPage)
+		mux.Get("/list-customers/{page}", handlers.Repo.ListCustomers)
+		mux.Get("/list-payments/{page}", handlers.Repo.ListPayments)
 
 		//Purchase Route
 		mux.Get("/add-purchase", handlers.Repo.PurchaseForm)
 		mux.Post("/add-purchase", handlers.Repo.PostPurchase)
+		mux.Get("/list-purchases/{pages}", handlers.Repo.ListPurchases)
+
+		//Users Route
+		mux.Get("/signup", handlers.Repo.UserForm)
+		mux.Get("/edit-user", handlers.Repo.UserForm)
+		mux.Post("/signup", handlers.Repo.PostUser)
+		mux.Get("/list-users", handlers.Repo.ListUsers)
+		mux.Post("/resetPassword", handlers.Repo.PostReset)
+
+		//Backup and Recovery Route
+		mux.Get("/backup", handlers.Repo.BackupAndRecovery)
+		mux.Get("/restore", handlers.Repo.BackupAndRecovery)
 	})
 
 	return mux

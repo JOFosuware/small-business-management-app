@@ -21,6 +21,11 @@ func Routes() http.Handler {
 
 	mux.Route("/api", func(mux chi.Router) {
 		mux.Post("/customer-debt/{id}", apihandler.Repo.CustomerDebt)
+		mux.Get("/owing-today", apihandler.Repo.CustomerOwingToday)
+		mux.Get("/list-products/{page}", apihandler.Repo.ListProductByPage)
+		mux.Get("/list-customers/{page}", apihandler.Repo.ListCustomersByPage)
+		mux.Get("/list-payments/{page}", apihandler.Repo.ListPaymentsByPage)
+		mux.Get("/list-purchases/{page}", apihandler.Repo.ListPurchasesByPage)
 	})
 	return mux
 }

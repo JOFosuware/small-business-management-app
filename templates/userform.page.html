@@ -28,6 +28,7 @@
             <form
               action="{{$meta.Url}}"
               method="post"
+              enctype="multipart/form-data"
               class="row g-3 needs-validation justify-content-center"
               novalidate
             >
@@ -100,6 +101,15 @@
                   <div class="invalid-feedback">Please choose user type!</div>
                 </div>
               </div>
+
+              <div class="row mt-3">
+                <div class="col">
+                  <label for="formFile" class="form-label">Choose User Photo</label>
+                  <input class="form-control" name="userPhoto" type="file" id="userPhoto">
+                  <div class="invalid-feedback">Please choose user's photo!</div>
+                </div>
+              </div>
+              
               <div class="col-7">
                 <button class="btn btn-primary w-100" type="submit">
                   {{$meta.Button}}

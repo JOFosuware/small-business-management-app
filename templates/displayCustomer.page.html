@@ -32,6 +32,7 @@
                   <th>Location</th>
                   <th>Landmark</th>
                   <th>Terms</th>
+                  <th>Picture</th>
                 </tr>
               </thead>
               <tbody>
@@ -45,6 +46,7 @@
                   <td>{{$cust.Location}}</td>
                   <td>{{$cust.Landmark}}</td>
                   <td>{{$cust.Agreement}}</td>
+                  <td><img class="img-fluid" src="data:image/png;base64,{{convertToBase64 $cust.CustImage}}" alt="customer image"></td>
                 </tr>
               </tbody>
             </table>

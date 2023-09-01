@@ -1,0 +1,147 @@
+{{template "admin" .}} {{define "content"}}
+<main id="main" class="main">
+  <div class="pagetitle">
+    <h1>Product List</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+        <li class="breadcrumb-item">Product</li>
+        <li class="breadcrumb-item active">List</li>
+      </ol>
+    </nav>
+  </div>
+  <!-- End Page Title -->
+
+  <section class="section">
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Product List</h5>
+            <!-- Table with stripped rows -->
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Serial Number</th>
+                  <th>Product Name</th>
+                  <th>Description</th>
+                  <th>Unit Price</th>
+                  <th>Units In Stock</th>
+                </tr>
+              </thead>
+              <tbody id="listProducts">
+                
+                {{range $prod := index .Data "products"}}
+                    <tr>
+                        <td>{{$prod.Serial}}</td>
+                        <td>{{$prod.Name}}</td>
+                        <td>{{$prod.Description}}</td>
+                        <td>Gh₵{{$prod.Price}}</td>
+                        <td>{{$prod.Units}}</td>
+                    </tr>
+                {{end}}
+              </tbody>
+            </table>
+            <nav aria-label="Page navigation example">
+              <ul class="pagination justify-content-center">
+                <li id="prevGroup" class="page-item">
+                  <button id="prevPage" class="page-link" tabindex="-1" aria-disabled="true">Prev</button>
+                </li>
+                <li id="nextGroup" class="page-item">
+                  <button id="nextPage" class="page-link">Next</button>
+                </li>
+              </ul>
+            </nav>
+            <!-- End Table with stripped rows -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<!-- End #main -->
+{{end}}
+
+{{define "js"}}
+  <script>
+    const listProdEl = document.getElementById("listProducts")
+    const nextPage = document.getElementById("nextPage")
+    const prevPage = document.getElementById("prevPage")
+    const nextGroupEl = document.getElementById("nextGroup")
+    const prevGroupEl = document.getElementById("prevGroup")
+    let page = 1
+
+    if(page === 1) {
+      prevGroupEl.classList.add("disabled")
+    }else{
+      prevGroupEl.classList.remove("disabled")
+    }
+
+    nextPage.addEventListener("click", function(){
+      page++
+      fetch(`http://localhost:8081/api/list-products/${page}`)
+        .then(resp => resp.json())
+        .then(function(resp) {
+          if(resp.error === true){
+            throw new Error(resp.error)
+          }
+
+          if(resp.products.length < 6){
+            nextGroupEl.classList.add("disabled")
+            prevGroupEl.classList.remove("disabled")
+          }else{
+            nextGroupEl.classList.remove("disabled")
+          }
+
+          listProdEl.innerHTML = ""
+          resp.products.forEach(function(prod){
+            listProdEl.innerHTML += `
+              <tr>
+                <td>${prod.Serial}</td>
+                <td>${prod.Name}</td>
+                <td>${prod.Description}</td>
+                <td>Gh₵${prod.Price}</td>
+                <td>${prod.Units}</td>
+              </tr>
+            `
+          })
+        }).catch(function(error){
+          notify(`${error.message}`, "warning")
+        })
+    })  
+    
+    prevPage.addEventListener("click", function(){
+      page--
+      fetch(`http://localhost:8081/api/list-products/${page}`)
+        .then(resp => resp.json())
+        .then(function(resp) {
+          if(resp.error === true){
+            throw new Error(resp.error)
+          }
+
+          if(page === 1){
+            nextGroupEl.classList.remove("disabled")
+            prevGroupEl.classList.add("disabled")
+          }else{
+            prevGroupEl.classList.remove("disabled")
+          }
+
+          listProdEl.innerHTML = ""
+          resp.products.forEach(function(prod){
+            listProdEl.innerHTML += `
+              <tr>
+                <td>${prod.Serial}</td>
+                <td>${prod.Name}</td>
+                <td>${prod.Description}</td>
+                <td>Gh₵${prod.Price}</td>
+                <td>${prod.Units}</td>
+              </tr>
+            `
+          })
+        }).catch(function(error){
+          notify(`${error.message}`, "warning")
+        })
+    })
+
+  </script>
+{{end}}

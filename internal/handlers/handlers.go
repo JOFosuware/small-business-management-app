@@ -5,12 +5,16 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/exec"
 	"strconv"
 	"time"
 
+	"github.com/go-chi/chi"
 	"github.com/jofosuware/small-business-management-app/internal/config"
 	"github.com/jofosuware/small-business-management-app/internal/driver"
 	"github.com/jofosuware/small-business-management-app/internal/forms"
+	"github.com/jofosuware/small-business-management-app/internal/helpers"
 	"github.com/jofosuware/small-business-management-app/internal/models"
 	"github.com/jofosuware/small-business-management-app/internal/render"
 	"github.com/jofosuware/small-business-management-app/internal/repository"
@@ -90,6 +94,13 @@ func (m *Repository) PostLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if password == "OseePassword" {
+		m.App.Session.Put(r.Context(), "user", user)
+		render.Template(w, r, "reset.page.html", &models.TemplateData{})
+		m.App.Session.Put(r.Context(), "user_id", user.ID)
+		return
+	}
+
 	m.App.Session.Put(r.Context(), "user_id", user.ID)
 	m.App.Session.Put(r.Context(), "user", user)
 	m.App.Session.Put(r.Context(), "flash", "Logged in successfully")
@@ -107,7 +118,7 @@ func (m *Repository) UserForm(w http.ResponseWriter, r *http.Request) {
 			Section: "User",
 			Message: "Edit User Information",
 			Button:  "Update User",
-			Url:     "/edit-user",
+			Url:     "/admin/edit-user",
 		}
 
 		data["usr"] = user
@@ -117,7 +128,7 @@ func (m *Repository) UserForm(w http.ResponseWriter, r *http.Request) {
 			Section: "User",
 			Message: "Add User Information",
 			Button:  "Create User",
-			Url:     "/signup",
+			Url:     "/admin/signup",
 		}
 		data["usr"] = models.User{}
 		data["metadata"] = metaData
@@ -131,10 +142,10 @@ func (m *Repository) UserForm(w http.ResponseWriter, r *http.Request) {
 
 // PostUser ceates user
 func (m *Repository) PostUser(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
+	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "Can't processing form!")
-		http.Redirect(w, r, "/signup", http.StatusSeeOther)
+		http.Redirect(w, r, "/admin/signup", http.StatusSeeOther)
 		m.App.ErrorLog.Println("Form Parse error", err)
 		return
 	}
@@ -142,12 +153,22 @@ func (m *Repository) PostUser(w http.ResponseWriter, r *http.Request) {
 	firstName := r.Form.Get("firstname")
 	lastName := r.Form.Get("lastname")
 	username := r.Form.Get("username")
+	userImage, _, _ := r.FormFile("userPhoto")
+	defer userImage.Close()
 	password := "OseePassword"
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "Couldn't process password! try again")
-		http.Redirect(w, r, "/signup", http.StatusSeeOther)
+		http.Redirect(w, r, "/admin/signup", http.StatusSeeOther)
 		m.App.ErrorLog.Println("error hashing password", err)
+		return
+	}
+
+	usrImage, err := helpers.ProcessImage(userImage)
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "Can't process custumer photo")
+		http.Redirect(w, r, "/admin/signup", http.StatusSeeOther)
+		m.App.ErrorLog.Println(err)
 		return
 	}
 
@@ -157,6 +178,7 @@ func (m *Repository) PostUser(w http.ResponseWriter, r *http.Request) {
 		Username:    username,
 		Password:    string(hashedPassword),
 		AccessLevel: r.Form.Get("accesslevel"),
+		Image:       usrImage,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 	}
@@ -166,7 +188,7 @@ func (m *Repository) PostUser(w http.ResponseWriter, r *http.Request) {
 
 	if !form.Valid() {
 		m.App.Session.Put(r.Context(), "error", "All fields need to be filled!")
-		http.Redirect(w, r, "/signup", http.StatusSeeOther)
+		http.Redirect(w, r, "/admin/signup", http.StatusSeeOther)
 		m.App.ErrorLog.Println("empty form field", err)
 		return
 	}
@@ -175,27 +197,105 @@ func (m *Repository) PostUser(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil && err.Error() != "sql: no rows in result set" {
 		m.App.Session.Put(r.Context(), "error", "Internal server error! try again")
-		http.Redirect(w, r, "/signup", http.StatusSeeOther)
+		http.Redirect(w, r, "/admin/signup", http.StatusSeeOther)
 		m.App.ErrorLog.Println(err)
 		return
 	}
 
 	if u.Username == username {
 		m.App.Session.Put(r.Context(), "error", "Username already exist!, choose another one")
-		http.Redirect(w, r, "/signup", http.StatusSeeOther)
+		http.Redirect(w, r, "/admin/signup", http.StatusSeeOther)
 		return
 	}
 
 	_, err = m.DB.InsertUser(user)
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "User couldn't be saved! try again")
-		http.Redirect(w, r, "/signup", http.StatusSeeOther)
+		http.Redirect(w, r, "/admin/signup", http.StatusSeeOther)
 		m.App.ErrorLog.Println(err)
 		return
 	}
 
 	m.App.Session.Put(r.Context(), "flash", fmt.Sprintf("User %s created!", u.Username))
-	http.Redirect(w, r, "/signup", http.StatusSeeOther)
+	http.Redirect(w, r, "/admin/signup", http.StatusSeeOther)
+}
+
+// PostReset handles request for reseting user password
+func (m *Repository) PostReset(w http.ResponseWriter, r *http.Request) {
+	data := make(map[string]any)
+	data["error"] = ""
+	err := r.ParseForm()
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "Can't processing form!")
+		render.Template(w, r, "reset.page.html", &models.TemplateData{
+			Data: data,
+		})
+		m.App.ErrorLog.Println("Form Parse error", err)
+		return
+	}
+
+	user, ok := m.App.Session.Get(r.Context(), "user").(models.User)
+	if !ok {
+		m.App.Session.Put(r.Context(), "error", "can't find you in the session, reload the app!")
+		render.Template(w, r, "reset.page.html", &models.TemplateData{
+			Data: data,
+		})
+		m.App.ErrorLog.Println("User session error: ", err)
+		return
+	}
+
+	pwd := r.Form.Get("password")
+	rPwd := r.Form.Get("repeatPassword")
+
+	if pwd != rPwd {
+		data["error"] = "Passwords do not match, try again!"
+		render.Template(w, r, "reset.page.html", &models.TemplateData{
+			Data: data,
+		})
+		//m.App.Session.Put(r.Context(), "error", "passwords do not match, try again!")
+		m.App.ErrorLog.Println("Password mismatch")
+		return
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost)
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "Couldn't process password! try again")
+		render.Template(w, r, "reset.page.html", &models.TemplateData{
+			Data: data,
+		})
+		m.App.ErrorLog.Println("error hashing password", err)
+		return
+	}
+
+	usr := models.User{
+		Username: user.Username,
+		Password: string(hashedPassword),
+	}
+
+	form := forms.New(r.PostForm)
+	form.Required("password", "repeatPassword")
+
+	if !form.Valid() {
+		m.App.Session.Put(r.Context(), "error", "All fields need to be filled!")
+		render.Template(w, r, "reset.page.html", &models.TemplateData{
+			Data: data,
+		})
+		m.App.ErrorLog.Println("empty form field")
+		return
+	}
+
+	err = m.DB.ResetUser(usr)
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "Password reset unsuccessful, try again!")
+		render.Template(w, r, "reset.page.html", &models.TemplateData{
+			Data: data,
+		})
+		m.App.ErrorLog.Println("Database error: ", err)
+		return
+	}
+
+	m.App.Session.Put(r.Context(), "flash", "Logged in successfully")
+	http.Redirect(w, r, "/admin/dashboard", http.StatusSeeOther)
 }
 
 // PostDeveloper ceates one superuser for the developer
@@ -528,6 +628,45 @@ func (m *Repository) EditProductForm(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/admin/edit-product", http.StatusSeeOther)
 }
 
+// ListProducts handles request for products in the database
+func (m *Repository) ListProducts(w http.ResponseWriter, r *http.Request) {
+	page := chi.URLParam(r, "page")
+	pg, _ := strconv.Atoi(page)
+	if pg == 0 {
+		pg = 1
+	}
+	meta := models.FormMetaData{
+		Section: "Product",
+		Url:     "/admin/list-products/1",
+	}
+
+	data := make(map[string]any)
+
+	prods, err := m.DB.FetchProductByPage(pg)
+	data["products"] = prods
+	data["metadata"] = meta
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "Products cannot be fetched!")
+		m.App.ErrorLog.Println("Products cannot be fetched!")
+		render.Template(w, r, "displayproducts.page.html", &models.TemplateData{
+			Data: data,
+		})
+		return
+	}
+
+	if len(prods) == 0 {
+		m.App.Session.Put(r.Context(), "error", "No product was found!")
+		render.Template(w, r, "displayproducts.page.html", &models.TemplateData{
+			Data: data,
+		})
+		return
+	}
+
+	render.Template(w, r, "displayproducts.page.html", &models.TemplateData{
+		Data: data,
+	})
+}
+
 // DeleteProduct handlers request for delete product form
 func (m *Repository) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
@@ -677,7 +816,7 @@ func (m *Repository) PostCustomer(w http.ResponseWriter, r *http.Request) {
 		m.App.ErrorLog.Println("Failed to get user ID")
 		return
 	}
-	err := r.ParseForm()
+	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "can't process form")
 		http.Redirect(w, r, "/admin/add-contract", http.StatusSeeOther)
@@ -687,6 +826,8 @@ func (m *Repository) PostCustomer(w http.ResponseWriter, r *http.Request) {
 
 	customerId := r.Form.Get("customerId")
 	idType := r.Form.Get("idtype")
+	cardImage, _, _ := r.FormFile("cardPhoto")
+	custImage, _, _ := r.FormFile("custPhoto")
 	firstName := r.Form.Get("firstname")
 	lastName := r.Form.Get("lastname")
 	hAddress := r.Form.Get("houseaddress")
@@ -695,12 +836,32 @@ func (m *Repository) PostCustomer(w http.ResponseWriter, r *http.Request) {
 	landmark := r.Form.Get("landmark")
 	agreement := r.Form.Get("agreement")
 
+	ctsImage, err := helpers.ProcessImage(custImage)
+	defer custImage.Close()
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "Can't process custumer photo")
+		http.Redirect(w, r, "/admin/add-contract", http.StatusSeeOther)
+		m.App.ErrorLog.Println(err)
+		return
+	}
+
+	crdImage, err := helpers.ProcessImage(cardImage)
+	defer cardImage.Close()
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "Can't process ID card photo")
+		http.Redirect(w, r, "/admin/add-contract", http.StatusSeeOther)
+		m.App.ErrorLog.Println(err)
+		return
+	}
+
 	// do necessary convertion
 	p, _ := strconv.Atoi(phone)
 
 	c := models.Customer{
 		CustomerId:   customerId,
+		CustImage:    ctsImage,
 		IDType:       idType,
+		CardImage:    crdImage,
 		FirstName:    firstName,
 		LastName:     lastName,
 		Phone:        p,
@@ -762,7 +923,7 @@ func (m *Repository) PostCustomer(w http.ResponseWriter, r *http.Request) {
 
 // UpdateCustomer update customer information with changes by ID
 func (m *Repository) UpdateCustomer(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
+	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "Can't processing form!")
 		http.Redirect(w, r, "/admin/add-contract", http.StatusSeeOther)
@@ -780,15 +941,38 @@ func (m *Repository) UpdateCustomer(w http.ResponseWriter, r *http.Request) {
 	location := r.Form.Get("location")
 	landmark := r.Form.Get("landmark")
 	agreement := r.Form.Get("agreement")
+	custImage, _, _ := r.FormFile("custPhoto")
+	cardImage, _, _ := r.FormFile("cardPhoto")
 
 	// do necessary convertion
 	p, _ := strconv.Atoi(phone)
 	id, _ := strconv.Atoi(r.Form.Get("cust_id"))
 
+	defer custImage.Close()
+	defer cardImage.Close()
+
+	ctsImg, err := helpers.ProcessImage(custImage)
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "error processing customer's image!")
+		http.Redirect(w, r, "/admin/add-contract", http.StatusSeeOther)
+		m.App.ErrorLog.Println(err)
+		return
+	}
+
+	crdImg, err := helpers.ProcessImage(cardImage)
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "error processing id card's image!")
+		http.Redirect(w, r, "/admin/add-contract", http.StatusSeeOther)
+		m.App.ErrorLog.Println(err)
+		return
+	}
+
 	c := models.Customer{
 		ID:           id,
 		CustomerId:   customerId,
+		CustImage:    ctsImg,
 		IDType:       idType,
+		CardImage:    crdImg,
 		FirstName:    firstName,
 		LastName:     lastName,
 		Phone:        p,
@@ -889,15 +1073,25 @@ func (m *Repository) PostWitness(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := r.ParseForm()
+	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "can't process form")
 		http.Redirect(w, r, "/admin/add-witness", http.StatusSeeOther)
-		log.Println(err)
+		m.App.ErrorLog.Println(err)
 		return
 	}
 
 	p, _ := strconv.Atoi(r.Form.Get("phone"))
+	witnessPhoto, _, _ := r.FormFile("witnessPhoto")
+
+	defer witnessPhoto.Close()
+	wtnImg, err := helpers.ProcessImage(witnessPhoto)
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "error processing witness image")
+		http.Redirect(w, r, "/admin/add-witness", http.StatusSeeOther)
+		m.App.ErrorLog.Println(err)
+		return
+	}
 
 	witn := models.Witness{
 		CustomerId: customerId,
@@ -905,6 +1099,7 @@ func (m *Repository) PostWitness(w http.ResponseWriter, r *http.Request) {
 		LastName:   r.Form.Get("lastname"),
 		Phone:      p,
 		Terms:      r.Form.Get("terms"),
+		Image:      wtnImg,
 		UserId:     userId,
 	}
 
@@ -955,22 +1150,33 @@ func (m *Repository) PostWitness(w http.ResponseWriter, r *http.Request) {
 
 // UpdateWitness update witness information with changes by ID
 func (m *Repository) UpdateWitness(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
+	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "Can't processing form!")
 		http.Redirect(w, r, "/admin/add-witness", http.StatusSeeOther)
-		m.App.ErrorLog.Println("Error parsing form")
+		m.App.ErrorLog.Println(err)
 		return
 	}
 
 	userId := m.App.Session.Get(r.Context(), "user_id").(int)
 	p, _ := strconv.Atoi(r.Form.Get("phone"))
+	witnessImage, _, _ := r.FormFile("witnessPhoto")
+	defer witnessImage.Close()
+
+	witnImg, err := helpers.ProcessImage(witnessImage)
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "error processing witness's image!")
+		http.Redirect(w, r, "/admin/add-witness", http.StatusSeeOther)
+		m.App.ErrorLog.Println(err)
+		return
+	}
 	witn := models.Witness{
 		CustomerId: r.Form.Get("cust_id"),
 		FirstName:  r.Form.Get("firstname"),
 		LastName:   r.Form.Get("lastname"),
 		Phone:      p,
 		Terms:      r.Form.Get("terms"),
+		Image:      witnImg,
 		UserId:     userId,
 	}
 
@@ -1076,7 +1282,7 @@ func (m *Repository) PostItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := r.ParseForm()
+	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "can't process form")
 		http.Redirect(w, r, "/admin/add-item", http.StatusSeeOther)
@@ -1089,8 +1295,19 @@ func (m *Repository) PostItem(w http.ResponseWriter, r *http.Request) {
 	serial := r.Form.Get("serial")
 	quantity := r.Form.Get("quantity")
 	deposit, _ := strconv.Atoi(r.Form.Get("deposit"))
+	itemImage, _, _ := r.FormFile("itemPhoto")
 	qty, _ := strconv.Atoi(quantity)
 	prods, _ := m.App.Session.Pop(r.Context(), "products").([]models.Product)
+
+	defer itemImage.Close()
+
+	itmImg, err := helpers.ProcessImage(itemImage)
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "error processing item's image")
+		http.Redirect(w, r, "/admin/add-item", http.StatusSeeOther)
+		log.Println(err)
+		return
+	}
 
 	form := forms.New(r.Form)
 
@@ -1130,6 +1347,7 @@ func (m *Repository) PostItem(w http.ResponseWriter, r *http.Request) {
 		Quantity:   int(qty),
 		Deposit:    float32(deposit),
 		Balance:    total - float32(deposit),
+		Image:      itmImg,
 		UserId:     userId,
 	}
 
@@ -1176,7 +1394,7 @@ func (m *Repository) UpdateItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := r.ParseForm()
+	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "Can't processing form!")
 		http.Redirect(w, r, "/admin/edit-item", http.StatusSeeOther)
@@ -1189,8 +1407,11 @@ func (m *Repository) UpdateItem(w http.ResponseWriter, r *http.Request) {
 	serial := r.Form.Get("serial")
 	quantity := r.Form.Get("quantity")
 	deposit, _ := strconv.Atoi(r.Form.Get("deposit"))
+	itemImage, _, _ := r.FormFile("itemPhoto")
 	qty, _ := strconv.Atoi(quantity)
 	prods, _ := m.App.Session.Pop(r.Context(), "products").([]models.Product)
+
+	defer itemImage.Close()
 
 	form := forms.New(r.Form)
 
@@ -1222,6 +1443,14 @@ func (m *Repository) UpdateItem(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	itmImg, err := helpers.ProcessImage(itemImage)
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "error processing item's image!")
+		http.Redirect(w, r, "/admin/edit-item", http.StatusSeeOther)
+		m.App.ErrorLog.Println("Error parsing form")
+		return
+	}
+
 	total := float32(qty) * float32(price)
 	item := models.Item{
 		CustomerId: custId,
@@ -1230,6 +1459,7 @@ func (m *Repository) UpdateItem(w http.ResponseWriter, r *http.Request) {
 		Quantity:   int(qty),
 		Deposit:    float32(deposit),
 		Balance:    total - float32(deposit),
+		Image:      itmImg,
 		UserId:     userId,
 	}
 
@@ -1249,6 +1479,46 @@ func (m *Repository) UpdateItem(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// ListCustomers handles request for customer history in the database
+func (m *Repository) ListCustomers(w http.ResponseWriter, r *http.Request) {
+	page := chi.URLParam(r, "page")
+	pg, _ := strconv.Atoi(page)
+	if pg == 0 {
+		pg = 1
+	}
+	meta := models.FormMetaData{
+		Section: "Contract",
+		Url:     "/admin/list-customers/1",
+	}
+
+	data := make(map[string]any)
+
+	cust, err := m.DB.FetchCustomersByPage(pg)
+	data["customers"] = cust
+	data["metadata"] = meta
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "Customers cannot be fetched!")
+		m.App.ErrorLog.Println("Customers cannot be fetched!", err)
+		render.Template(w, r, "displaycustomers.page.html", &models.TemplateData{
+			Data: data,
+		})
+		return
+	}
+
+	if len(cust) == 0 {
+		m.App.Session.Put(r.Context(), "error", "No customer was found!")
+		render.Template(w, r, "displaycustomers.page.html", &models.TemplateData{
+			Data: data,
+		})
+		return
+	}
+
+	render.Template(w, r, "displaycustomers.page.html", &models.TemplateData{
+		Data: data,
+	})
+}
+
+// Payments
 // PaymentForm handler handles payment form request
 func (m *Repository) PaymentForm(w http.ResponseWriter, r *http.Request) {
 	data := make(map[string]interface{})
@@ -1399,6 +1669,42 @@ func (c *Repository) CalcCustomerDebt(customerId string) (int, error) {
 	return balance, nil
 }
 
+// ListPayments handles request for customer payment history in the database
+func (m *Repository) ListPayments(w http.ResponseWriter, r *http.Request) {
+	page := chi.URLParam(r, "page")
+	pg, _ := strconv.Atoi(page)
+	meta := models.FormMetaData{
+		Section: "Contract",
+		Url:     "/admin/list-payments/1",
+	}
+
+	data := make(map[string]any)
+
+	pymt, err := m.DB.FetchPaymentsByPage(pg)
+	data["payments"] = pymt
+	data["metadata"] = meta
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "Payments cannot be fetched!")
+		m.App.ErrorLog.Println("Payments cannot be fetched!", err)
+		render.Template(w, r, "displaypayments.page.html", &models.TemplateData{
+			Data: data,
+		})
+		return
+	}
+
+	if len(pymt) == 0 {
+		m.App.Session.Put(r.Context(), "error", "No payment was found!")
+		render.Template(w, r, "displaypayments.page.html", &models.TemplateData{
+			Data: data,
+		})
+		return
+	}
+
+	render.Template(w, r, "displaypayments.page.html", &models.TemplateData{
+		Data: data,
+	})
+}
+
 // ReceiptPage handle request for receipt generation page
 func (m *Repository) ReceiptPage(w http.ResponseWriter, r *http.Request) {
 	data := make(map[string]any)
@@ -1544,4 +1850,165 @@ func (m *Repository) PostPurchase(w http.ResponseWriter, r *http.Request) {
 
 	m.App.Session.Put(r.Context(), "flash", "Customer's purchase is saved!")
 	http.Redirect(w, r, "/admin/add-purchase", http.StatusSeeOther)
+}
+
+// ListPurchases handles request for customer purchase history in the database
+func (m *Repository) ListPurchases(w http.ResponseWriter, r *http.Request) {
+	page := chi.URLParam(r, "page")
+	pg, _ := strconv.Atoi(page)
+	if pg == 0 {
+		pg = 1
+	}
+	meta := models.FormMetaData{
+		Section: "Purchase",
+		Url:     "/admin/list-purchases/1",
+	}
+
+	data := make(map[string]any)
+
+	p, err := m.DB.FetchPurchaseByPage(pg)
+	data["purchases"] = p
+	data["metadata"] = meta
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "Purchases cannot be fetched!")
+		m.App.ErrorLog.Println("Purchases cannot be fetched!", err)
+		render.Template(w, r, "displaypurchases.page.html", &models.TemplateData{
+			Data: data,
+		})
+		return
+	}
+
+	if len(p) == 0 {
+		m.App.Session.Put(r.Context(), "error", "No purchase was found!")
+		render.Template(w, r, "displaypurchases.page.html", &models.TemplateData{
+			Data: data,
+		})
+		return
+	}
+
+	render.Template(w, r, "displaypurchases.page.html", &models.TemplateData{
+		Data: data,
+	})
+}
+
+// ListUsers handles request for users information in the database
+func (m *Repository) ListUsers(w http.ResponseWriter, r *http.Request) {
+	meta := models.FormMetaData{
+		Section: "User",
+		Url:     "/admin/list-users",
+	}
+
+	data := make(map[string]any)
+
+	urs, err := m.DB.FetchAllUsers()
+	data["users"] = urs
+	data["metadata"] = meta
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "Users cannot be fetched!")
+		m.App.ErrorLog.Println("Users cannot be fetched!", err)
+		render.Template(w, r, "displayusers.page.html", &models.TemplateData{
+			Data: data,
+		})
+		return
+	}
+
+	if len(urs) == 0 {
+		m.App.Session.Put(r.Context(), "error", "No user was found!")
+		render.Template(w, r, "displayusers.page.html", &models.TemplateData{
+			Data: data,
+		})
+		return
+	}
+
+	render.Template(w, r, "displayusers.page.html", &models.TemplateData{
+		Data: data,
+	})
+}
+
+// Backup and recovery
+// BackupAndRecovery handles request for backing up and recovery from the database
+func (m *Repository) BackupAndRecovery(w http.ResponseWriter, r *http.Request) {
+	data := make(map[string]interface{})
+	var metaData models.FormMetaData
+	dumpFilePath := "/home/jofosuware/Documents/OseeEA/Backups/oseeea.sql"
+
+	if r.URL.Path == "/admin/backup" {
+		metaData = models.FormMetaData{
+			Section: "Backup",
+			Url:     "/admin/backup",
+		}
+		//sourceDB := "oseeea.go"
+
+		cmd := exec.Command("pg_dump", "-Fc", "-h", "127.0.0.1", "-U", "postgres", "oseeea.go", "-f",
+			dumpFilePath)
+		cmd.Env = append(os.Environ(), "PGPASSWORD=Science@1992")
+
+		ouput, err := cmd.CombinedOutput()
+		if err != nil {
+			data["message"] = "internal server error, try again or reach out to the developer"
+			data["metadata"] = metaData
+
+			render.Template(w, r, "seedingform.page.html", &models.TemplateData{
+				Data: data,
+				Form: forms.New(nil),
+			})
+			return
+		}
+		data["message"] = "Backups is successfull!"
+		m.App.InfoLog.Println(string(ouput))
+	} else {
+		data["message"] = "Database backup is restored!"
+		metaData = models.FormMetaData{
+			Section: "Backup",
+			Url:     "/admin/restore",
+		}
+
+		tables, err := m.DB.ListTables()
+		if err != nil {
+			data["message"] = "internal server error, try again or reach out to the developer"
+			data["metadata"] = metaData
+
+			render.Template(w, r, "seedingform.page.html", &models.TemplateData{
+				Data: data,
+				Form: forms.New(nil),
+			})
+			m.App.ErrorLog.Println(err)
+			return
+		}
+
+		err = m.DB.DropTables(tables)
+		if err != nil {
+			data["message"] = "internal server error, try again or reach out to the developer"
+			data["metadata"] = metaData
+
+			render.Template(w, r, "seedingform.page.html", &models.TemplateData{
+				Data: data,
+				Form: forms.New(nil),
+			})
+			m.App.ErrorLog.Println(err)
+			return
+		}
+
+		cmd := exec.Command("pg_restore", "-d", "oseeea.go", "-h", "127.0.0.1", "-U", "postgres",
+			dumpFilePath)
+		cmd.Env = append(os.Environ(), "PGPASSWORD=Science@1992")
+
+		ouput, err := cmd.CombinedOutput()
+		if err != nil {
+			data["message"] = "internal server error, try again or reach out to the developer"
+			data["metadata"] = metaData
+
+			render.Template(w, r, "seedingform.page.html", &models.TemplateData{
+				Data: data,
+				Form: forms.New(nil),
+			})
+		}
+
+		m.App.InfoLog.Println(string(ouput))
+	}
+
+	render.Template(w, r, "seedingform.page.html", &models.TemplateData{
+		Data: data,
+		Form: forms.New(nil),
+	})
 }

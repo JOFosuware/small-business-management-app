@@ -28,6 +28,7 @@
             <form
               action="{{$meta.Url}}"
               method="post"
+              enctype="multipart/form-data"
               class="row g-3 needs-validation justify-content-center"
               novalidate
             >
@@ -94,6 +95,11 @@
                   <div class="invalid-feedback">
                     Please enter customer's phone!
                   </div>
+                </div>
+                <div class="col">
+                  <label for="formFile" class="form-label">Choose Witness Photo</label>
+                  <input class="form-control" name="witnessPhoto" type="file" id="cardPhoto">
+                  <div class="invalid-feedback">Please choose witness photo!</div>
                 </div>
               </div>
 

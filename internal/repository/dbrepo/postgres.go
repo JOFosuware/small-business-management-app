@@ -3,6 +3,7 @@ package dbrepo
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/jofosuware/small-business-management-app/internal/models"
@@ -40,13 +41,15 @@ func (m *postgresDBRepo) InsertUser(u models.User) (int, error) {
 
 	query := `
 		insert into users (first_name, last_name, user_name,
-		 password, access_level, created_at, updated_at) values ($1, $2, $3, $4, $5, $6, $7) returning id
+		 password, user_image, access_level, created_at, updated_at) 
+		values ($1, $2, $3, $4, $5, $6, $7, $8) returning id
 	`
 	err := m.DB.QueryRowContext(ctx, query,
 		u.FirstName,
 		u.LastName,
 		u.Username,
 		u.Password,
+		u.Image,
 		u.AccessLevel,
 		u.CreatedAt,
 		u.UpdatedAt,
@@ -59,6 +62,30 @@ func (m *postgresDBRepo) InsertUser(u models.User) (int, error) {
 	return newID, nil
 }
 
+// ResetUser updates user table with changes
+func (m *postgresDBRepo) ResetUser(u models.User) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := `
+			update users
+				set password = $1, updated_at = $2
+			where
+				user_name = $3
+	`
+	_, err := m.DB.ExecContext(ctx, query,
+		u.Password,
+		time.Now(),
+		u.Username,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // FetchUser select a user with his/her username
 func (m *postgresDBRepo) FetchUser(username string) (models.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -66,7 +93,8 @@ func (m *postgresDBRepo) FetchUser(username string) (models.User, error) {
 
 	u := models.User{}
 	quary := `select 
-				id, first_name, last_name, user_name, password, access_level, created_at, updated_at
+				id, first_name, last_name, user_name, password, access_level, user_image, created_at, 
+				updated_at
 		      from users where user_name = $1`
 
 	row := m.DB.QueryRowContext(ctx, quary, username)
@@ -77,6 +105,7 @@ func (m *postgresDBRepo) FetchUser(username string) (models.User, error) {
 		&u.Username,
 		&u.Password,
 		&u.AccessLevel,
+		&u.Image,
 		&u.CreatedAt,
 		&u.UpdatedAt,
 	)
@@ -262,6 +291,54 @@ func (m *postgresDBRepo) FetchAllProduct() ([]models.Product, error) {
 	return p, nil
 }
 
+// FetchAllProduct retrieves all product in the products database
+func (m *postgresDBRepo) FetchProductByPage(page int) ([]models.Product, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var p []models.Product
+	limit := 6
+	offset := (page - 1) * limit
+
+	rows, err := m.DB.QueryContext(ctx,
+		"select * from products order by serial limit $1 offset $2",
+		limit, offset,
+	)
+
+	if err != nil {
+		return p, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		prod := models.Product{}
+		err = rows.Scan(
+			&prod.ID,
+			&prod.Serial,
+			&prod.Name,
+			&prod.Description,
+			&prod.Price,
+			&prod.Units,
+			&prod.UserId,
+			&prod.CreatedAt,
+			&prod.UpdatedAt,
+		)
+
+		if err != nil {
+			return p, err
+		}
+
+		p = append(p, prod)
+
+		if err = rows.Err(); err != nil {
+			return p, err
+		}
+	}
+
+	return p, nil
+}
+
 // DeleteProduct removes product from the database by its serial number
 func (m *postgresDBRepo) DeleteProduct(serial string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -286,8 +363,8 @@ func (m *postgresDBRepo) FetchCustomer(customerId string) (models.Customer, erro
 
 	err := m.DB.QueryRowContext(ctx,
 		`select 
-			id, customer_id, id_type, first_name, last_name, house_address, phone, location, landmark,
-			agreement, user_id, created_at, updated_at 
+			id, customer_id, id_type, first_name, last_name, house_address, phone, 
+			location, landmark, agreement, user_id, created_at, updated_at, cust_image
 		from 
 			customers where customer_id = $1`,
 		customerId,
@@ -305,6 +382,7 @@ func (m *postgresDBRepo) FetchCustomer(customerId string) (models.Customer, erro
 		&c.UserId,
 		&c.CreatedAt,
 		&c.UpdatedAt,
+		&c.CustImage,
 	)
 
 	if err != nil {
@@ -314,20 +392,41 @@ func (m *postgresDBRepo) FetchCustomer(customerId string) (models.Customer, erro
 	return c, nil
 }
 
+// FetchCustomerImage retrieves customer's image from the database
+func (m *postgresDBRepo) FetchCustomerImage(customerId string) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var image []byte
+
+	query := `
+			select 
+				cust_image from customers where customer_id $1
+	`
+	err := m.DB.QueryRowContext(ctx, query, customerId).Scan(&image)
+	if err != nil {
+		return image, err
+	}
+
+	return image, nil
+}
+
 // InsertCustomer inserts customer information into the database
 func (m *postgresDBRepo) InsertCustomer(c models.Customer) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	query := `insert into customers 
-				(customer_id, id_type, first_name, last_name, house_address, phone, location, 
+				(customer_id, cust_image, id_type, card_image, first_name, last_name, house_address, phone, location, 
 					landmark, contract_status, agreement, user_id, created_at, updated_at) 
 			  values 
-			  	($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) 
+			  	($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) 
 	`
 	_, err := m.DB.ExecContext(ctx, query,
 		c.CustomerId,
+		c.CustImage,
 		c.IDType,
+		c.CardImage,
 		c.FirstName,
 		c.LastName,
 		c.HouseAddress,
@@ -389,9 +488,9 @@ func (m *postgresDBRepo) UpdateCustomer(c models.Customer) error {
 		update 
 			customers set customer_id = $1, id_type = $2, first_name = $3, last_name = $4, 
 			house_address = $5, phone = $6, location = $7, landmark= $8, contract_status = $9, agreement = $10,
-			user_id = $11, updated_at = $12 
+			user_id = $11, updated_at = $12, cust_image = $13, card_image = $14
 		where 
-			customer_id = $13 `
+			customer_id = $15 `
 
 	_, err := m.DB.ExecContext(ctx, query,
 		c.CustomerId,
@@ -406,6 +505,8 @@ func (m *postgresDBRepo) UpdateCustomer(c models.Customer) error {
 		c.Agreement,
 		c.UserId,
 		time.Now(),
+		c.CustImage,
+		c.CardImage,
 		c.CustomerId,
 	)
 
@@ -447,11 +548,11 @@ func (m *postgresDBRepo) InsertWitnessData(w models.Witness) (models.Witness, er
 	var witn models.Witness
 
 	query := `insert into witness 
-				(customer_id, first_name, last_name, phone, terms, user_id, created_at, updated_at) 
+				(customer_id, first_name, last_name, phone, terms, witness_image, user_id, created_at, updated_at) 
 			  values 
-			  	($1, $2, $3, $4, $5, $6, $7, $8) 
+			  	($1, $2, $3, $4, $5, $6, $7, $8, $9) 
 			  returning 
-			  	id, customer_id, first_name, last_name, phone, terms
+			  	id, customer_id, first_name, last_name, phone, terms, witness_image
 	`
 	err := m.DB.QueryRowContext(ctx, query,
 		w.CustomerId,
@@ -459,6 +560,7 @@ func (m *postgresDBRepo) InsertWitnessData(w models.Witness) (models.Witness, er
 		w.LastName,
 		w.Phone,
 		w.Terms,
+		w.Image,
 		w.UserId,
 		time.Now(),
 		time.Now(),
@@ -469,6 +571,7 @@ func (m *postgresDBRepo) InsertWitnessData(w models.Witness) (models.Witness, er
 		&witn.LastName,
 		&witn.Phone,
 		&witn.Terms,
+		&witn.Image,
 	)
 
 	if err != nil {
@@ -485,10 +588,10 @@ func (m *postgresDBRepo) UpdateWitness(w models.Witness) error {
 
 	query := `
 		update 
-			witness set first_name = $1, last_name = $2, phone = $3, terms = $4, user_id = $5, 
-			updated_at = $6 
+			witness set first_name = $1, last_name = $2, phone = $3, terms = $4, witness_image = $5, 
+			user_id = $6, updated_at = $7 
 		where 
-			customer_id = $7
+			customer_id = $8
 	`
 
 	_, err := m.DB.ExecContext(ctx, query,
@@ -496,6 +599,7 @@ func (m *postgresDBRepo) UpdateWitness(w models.Witness) error {
 		w.LastName,
 		w.Phone,
 		w.Terms,
+		w.Image,
 		w.UserId,
 		time.Now(),
 		w.CustomerId,
@@ -515,9 +619,9 @@ func (m *postgresDBRepo) InsertItem(itm models.Item) error {
 
 	stmt := `insert into 
 				purchased_oncredit 
-					(customer_id, serial, price, quantity, deposit, balance, user_id, created_at, updated_at) 
+					(customer_id, serial, price, quantity, deposit, balance, item_image, user_id, created_at, updated_at) 
 			  values 
-			  		($1, $2, $3, $4, $5, $6, $7, $8, $9) 
+			  		($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
 			
 	`
 	_, err := m.DB.ExecContext(ctx, stmt,
@@ -527,6 +631,7 @@ func (m *postgresDBRepo) InsertItem(itm models.Item) error {
 		itm.Quantity,
 		itm.Deposit,
 		itm.Balance,
+		itm.Image,
 		itm.UserId,
 		time.Now(),
 		time.Now(),
@@ -547,11 +652,11 @@ func (m *postgresDBRepo) UpdateItem(itm models.Item) error {
 	query := `
 		update 
 			purchased_oncredit set serial = $1, price = $2, quantity = $3, 
-			deposit = $4, balance = $5, user_id = $6, updated_at = $7
+			deposit = $4, balance = $5, item_image = $6, user_id = $7, updated_at = $8
 		where 
-			customer_id = $8 
+			customer_id = $9 
 		AND
-			serial = $9
+			serial = $10
 			`
 
 	_, err := m.DB.ExecContext(ctx, query,
@@ -560,6 +665,7 @@ func (m *postgresDBRepo) UpdateItem(itm models.Item) error {
 		itm.Quantity,
 		itm.Deposit,
 		itm.Balance,
+		itm.Image,
 		itm.UserId,
 		time.Now(),
 		itm.CustomerId,
@@ -741,5 +847,361 @@ func (m *postgresDBRepo) DeletePurchase(id int) error {
 		return err
 	}
 
+	return nil
+}
+
+// FetchAllCustomers retrieve customer history from the database
+func (m *postgresDBRepo) FetchAllCustomers() ([]models.Customer, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var c []models.Customer
+
+	query := `
+				select 
+					customer_id, first_name, last_name,phone, house_address, location, landmark, 
+					contract_status, user_id, created_at, updated_at
+				from customers order by customer_id
+			`
+
+	rows, err := m.DB.QueryContext(ctx, query)
+
+	if err != nil {
+		return c, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		cust := models.Customer{}
+		err = rows.Scan(
+			&cust.CustomerId,
+			&cust.FirstName,
+			&cust.LastName,
+			&cust.Phone,
+			&cust.HouseAddress,
+			&cust.Location,
+			&cust.Landmark,
+			&cust.Status,
+			&cust.UserId,
+			&cust.CreatedAt,
+			&cust.UpdatedAt,
+		)
+
+		if err != nil {
+			return c, err
+		}
+
+		c = append(c, cust)
+
+		if err = rows.Err(); err != nil {
+			return c, err
+		}
+	}
+
+	return c, nil
+}
+
+// FetchCustomersByPage retrieve customer history from the database
+func (m *postgresDBRepo) FetchCustomersByPage(page int) ([]models.Customer, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var c []models.Customer
+	limit := 6
+	offset := (page - 1) * limit
+
+	query := `
+				select 
+					customer_id, cust_image, first_name, last_name,phone, house_address, location, landmark, 
+					contract_status, user_id, created_at, updated_at
+				from customers order by customer_id limit $1 offset $2
+			`
+
+	rows, err := m.DB.QueryContext(ctx, query, limit, offset)
+
+	if err != nil {
+		return c, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		cust := models.Customer{}
+		err = rows.Scan(
+			&cust.CustomerId,
+			&cust.CustImage,
+			&cust.FirstName,
+			&cust.LastName,
+			&cust.Phone,
+			&cust.HouseAddress,
+			&cust.Location,
+			&cust.Landmark,
+			&cust.Status,
+			&cust.UserId,
+			&cust.CreatedAt,
+			&cust.UpdatedAt,
+		)
+
+		if err != nil {
+			return c, err
+		}
+
+		c = append(c, cust)
+
+		if err = rows.Err(); err != nil {
+			return c, err
+		}
+	}
+
+	return c, nil
+}
+
+// FetchAllPayment retrieve customer payment history from the database
+func (m *postgresDBRepo) FetchAllPayment() ([]models.Payments, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var p []models.Payments
+
+	rows, err := m.DB.QueryContext(ctx,
+		"select customer_id, month, amount, payment_date, user_id from payments",
+	)
+
+	if err != nil {
+		return p, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		pymt := models.Payments{}
+		err = rows.Scan(
+			&pymt.CustomerId,
+			&pymt.Month,
+			&pymt.Amount,
+			&pymt.Date,
+			&pymt.UserId,
+		)
+
+		if err != nil {
+			return p, err
+		}
+
+		p = append(p, pymt)
+
+		if err = rows.Err(); err != nil {
+			return p, err
+		}
+	}
+
+	return p, nil
+}
+
+// FetchPaymentsByPage retrieve customer payment history by page from the database
+func (m *postgresDBRepo) FetchPaymentsByPage(page int) ([]models.Payments, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var p []models.Payments
+	limit := 6
+	offset := (page - 1) * limit
+
+	query := `
+		select 
+			customer_id, month, amount, payment_date, user_id, created_at, updated_at 
+		from payments order by customer_id limit $1 offset $2
+	`
+
+	rows, err := m.DB.QueryContext(ctx,
+		query, limit, offset,
+	)
+
+	if err != nil {
+		return p, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		pymt := models.Payments{}
+		err = rows.Scan(
+			&pymt.CustomerId,
+			&pymt.Month,
+			&pymt.Amount,
+			&pymt.Date,
+			&pymt.UserId,
+			&pymt.CreatedAt,
+			&pymt.UpdatedAt,
+		)
+
+		if err != nil {
+			return p, err
+		}
+
+		p = append(p, pymt)
+
+		if err = rows.Err(); err != nil {
+			return p, err
+		}
+	}
+
+	return p, nil
+}
+
+// FetchAllPurchase retrieve customers purchase history from the database
+func (m *postgresDBRepo) FetchAllPurchase() ([]models.Purchases, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var p []models.Purchases
+
+	rows, err := m.DB.QueryContext(ctx,
+		"select serial, quantity, user_id, created_at from purchases",
+	)
+
+	if err != nil {
+		return p, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		pymt := models.Purchases{}
+		err = rows.Scan(
+			&pymt.Serial,
+			&pymt.Quantity,
+			&pymt.UserId,
+			&pymt.CreatedAt,
+		)
+
+		if err != nil {
+			return p, err
+		}
+
+		p = append(p, pymt)
+
+		if err = rows.Err(); err != nil {
+			return p, err
+		}
+	}
+
+	return p, nil
+}
+
+// FetchPurchaseByPage retrieve customers purchase history by page from the database
+func (m *postgresDBRepo) FetchPurchaseByPage(page int) ([]models.Purchases, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var p []models.Purchases
+	limit := 6
+	offset := (page - 1) * limit
+
+	query := `
+			select serial, quantity, user_id, created_at 
+			from purchases order by serial limit $1 offset $2
+	`
+
+	rows, err := m.DB.QueryContext(ctx,
+		query, limit, offset,
+	)
+
+	if err != nil {
+		return p, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		pymt := models.Purchases{}
+		err = rows.Scan(
+			&pymt.Serial,
+			&pymt.Quantity,
+			&pymt.UserId,
+			&pymt.CreatedAt,
+		)
+
+		if err != nil {
+			return p, err
+		}
+
+		p = append(p, pymt)
+
+		if err = rows.Err(); err != nil {
+			return p, err
+		}
+	}
+
+	return p, nil
+}
+
+// FetchAllUsers retrieve user's information from the database
+func (m *postgresDBRepo) FetchAllUsers() ([]models.User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var u []models.User
+
+	rows, err := m.DB.QueryContext(ctx,
+		"select first_name, last_name, user_name, access_level, created_at from users",
+	)
+
+	if err != nil {
+		return u, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		urs := models.User{}
+		err = rows.Scan(
+			&urs.FirstName,
+			&urs.LastName,
+			&urs.Username,
+			&urs.AccessLevel,
+			&urs.CreatedAt,
+		)
+
+		if err != nil {
+			return u, err
+		}
+
+		u = append(u, urs)
+
+		if err = rows.Err(); err != nil {
+			return u, err
+		}
+	}
+
+	return u, nil
+}
+
+func (m *postgresDBRepo) ListTables() ([]string, error) {
+	rows, err := m.DB.Query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tables []string
+	for rows.Next() {
+		var tableName string
+		err := rows.Scan(&tableName)
+		if err != nil {
+			return nil, err
+		}
+		tables = append(tables, tableName)
+	}
+	return tables, nil
+}
+
+func (m *postgresDBRepo) DropTables(tables []string) error {
+	for _, table := range tables {
+		_, err := m.DB.Exec(fmt.Sprintf("DROP TABLE %s CASCADE", table))
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }

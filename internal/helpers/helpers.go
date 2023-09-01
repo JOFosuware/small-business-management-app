@@ -1,15 +1,17 @@
 package helpers
 
 import (
+	"bytes"
 	"fmt"
-	"io"
+	"image"
+	_ "image/jpeg"
+	"image/png"
 	"mime/multipart"
 	"net/http"
-	"os"
-	"path/filepath"
 	"runtime/debug"
 
 	"github.com/jofosuware/small-business-management-app/internal/config"
+	"github.com/nfnt/resize"
 )
 
 var app *config.AppConfig
@@ -35,23 +37,22 @@ func IsAuthenticated(r *http.Request) bool {
 	return exists
 }
 
-func FileSave(f multipart.File, h *multipart.FileHeader, fileName string) (string, error) {
-	defer f.Close()
-	path := filepath.Join(".", "files")
-	_ = os.Mkdir(path, os.ModePerm)
-	fullPath := path + "/" + fileName
-	file, err := os.OpenFile(fullPath, os.O_WRONLY|os.O_CREATE, os.ModePerm)
+func ProcessImage(file multipart.File) ([]byte, error) {
+	//Decode the file into an image.Image type
+	img, _, err := image.Decode(file)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	defer file.Close()
+	//Resize image
+	resizedImg := resize.Resize(100, 100, img, resize.Lanczos3)
 
-	// Copy the file to the destination path
-	_, err = io.Copy(file, f)
+	buf := new(bytes.Buffer)
+	err = png.Encode(buf, resizedImg)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
+	imgData := buf.Bytes()
 
-	return fileName + filepath.Ext(h.Filename), nil
+	return imgData, nil
 }

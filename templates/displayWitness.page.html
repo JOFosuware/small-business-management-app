@@ -28,6 +28,7 @@
                   <th>Last name</th>
                   <th>Phone</th>
                   <th>Terms</th>
+                  <th>Picture</th>
                 </tr>
               </thead>
               <tbody>
@@ -37,6 +38,7 @@
                   <td>{{$witn.LastName}}</td>
                   <td>0{{$witn.Phone}}</td>
                   <td>{{$witn.Terms}}</td>
+                  <td><img class="img-fluid" src="data:image/png;base64,{{convertToBase64 $witn.Image}}" alt="witness image"></td>
                 </tr>
               </tbody>
             </table>

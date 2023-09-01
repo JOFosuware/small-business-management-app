@@ -30,6 +30,7 @@
             <form
               action="{{$meta.Url}}"
               method="post"
+              enctype="multipart/form-data"
               class="row g-3 needs-validation justify-content-center"
               novalidate
             >
@@ -104,6 +105,11 @@
                       {{if ne $title.Sub "Purchase"}} required {{end}}
                     />
                     <div class="invalid-feedback">Please enter a deposit!</div>
+                  </div>
+                  <div class="col mt-3">
+                    <label for="formFile" class="form-label">Choose Item Photo</label>
+                    <input class="form-control" name="itemPhoto" type="file" id="itemPhoto">
+                    <div class="invalid-feedback">Please choose item's photo!</div>
                   </div>
                 </div>
                 

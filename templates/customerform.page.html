@@ -28,6 +28,7 @@
             <form
               action="{{$meta.Url}}"
               method="post"
+              enctype="multipart/form-data"
               class="row g-3 needs-validation justify-content-center"
               novalidate
             >
@@ -65,7 +66,18 @@
                   <div class="invalid-feedback">Please choose ID type!</div>
                 </div>
               </div>
-
+              <div class="row mt-4">
+                <div class="col">
+                  <label for="formFile" class="form-label">Choose Customer Photo</label>
+                  <input class="form-control" name="custPhoto" type="file" id="custPhoto">
+                  <div class="invalid-feedback">Please choose customer photo!</div>
+                </div>
+                <div class="col">
+                  <label for="formFile" class="form-label">Choose ID Card Photo</label>
+                  <input class="form-control" name="cardPhoto" type="file" id="cardPhoto">
+                  <div class="invalid-feedback">Please choose ID Card photo!</div>
+                </div>
+              </div>
               <div class="row mt-4">
                 <div class="col">
                   {{with .Form.Errors.Get "firstname"}}
@@ -129,13 +141,13 @@
                   <label class="text-danger">{{.}}</label>
                   {{end}}
                   <input
-                    type="tel"
+                    type="text"
                     name="phone"
                     class="form-control"
                     placeholder="Phone"
                     aria-label="Phone"
                     id="phone"
-                    value="0{{$cust.Phone}}"
+                    value="{{with $cust.Phone}} {{$cust.Phone}}{{end}}"
                     required
                   />
                   <div class="invalid-feedback">

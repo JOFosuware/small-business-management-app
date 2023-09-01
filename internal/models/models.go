@@ -12,6 +12,7 @@ type User struct {
 	Username    string
 	Password    string
 	AccessLevel string
+	Image       []byte
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
@@ -46,33 +47,43 @@ type PageTitle struct {
 
 // Client data struct
 type Customer struct {
-	ID           int
-	CustomerId   string
-	IDType       string
-	FirstName    string
-	LastName     string
-	Phone        int
-	HouseAddress string
-	Location     string
-	Landmark     string
-	Status       string
-	Agreement    string
-	UserId       int
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	ID              int
+	CustomerId      string
+	CustImage       []byte
+	IDType          string
+	CardImage       []byte
+	FirstName       string
+	LastName        string
+	Phone           int
+	HouseAddress    string
+	Location        string
+	Landmark        string
+	Status          string
+	Agreement       string
+	UserId          int
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	CustImgString   string
+	CardImgString   string
+	CreatedAtString string
+	UpdatedAtString string
 }
 
 // Client Witness data struct
 type Witness struct {
-	ID         int
-	CustomerId string
-	FirstName  string
-	LastName   string
-	Phone      int
-	Terms      string
-	UserId     int
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+	ID              int
+	CustomerId      string
+	FirstName       string
+	LastName        string
+	Phone           int
+	Terms           string
+	Image           []byte
+	UserId          int
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	ImageString     string
+	CreatedAtString string
+	UpdatedAtString string
 }
 
 // Client's items credited data struct
@@ -85,6 +96,7 @@ type Item struct {
 	Total      float32   `json:"-"`
 	Deposit    float32   `json:"deposit"`
 	Balance    float32   `json:"balance"`
+	Image      []byte    `json:"-"`
 	UserId     int       `json:"-"`
 	CreatedAt  time.Time `json:"-"`
 	UpdatedAt  time.Time `json:"-"`
