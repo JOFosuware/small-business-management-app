@@ -30,14 +30,14 @@
                 </tr>
               </thead>
               <tbody id="listPayments">
-                
+                {{$u := index .Data "user"}}
                 {{range $pymt := index .Data "payments"}}
                     <tr>
                         <td>{{$pymt.CustomerId}}</td>
                         <td>{{$pymt.Month}}</td>
                         <td>{{$pymt.Amount}}</td>
                         <td>{{humanDate $pymt.Date}}</td>
-                        <td>{{$pymt.UserId}}</td>
+                        <td>{{$u.Username}}</td>
                     </tr>
                 {{end}}
               </tbody>
@@ -83,7 +83,7 @@
         .then(resp => resp.json())
         .then(function(resp) {
           if(resp.error === true){
-            throw new Error(resp.error)
+            throw new Error(resp.message)
           }
           
           if(resp.payments.length < 6){
@@ -100,12 +100,15 @@
                 <td>${pymt.CustomerId}</td>
                 <td>${pymt.Month}</td>
                 <td>${pymt.Amount}</td>
-                <td>${pymt.Date}</td>
-                <td>${pymt.UserId}</td>
+                <td>${pymt.DateString}</td>
+                <td>${resp.user}</td>
               </tr>
             `
           })
         }).catch(function(error){
+          if(error.message === "no more data"){
+            nextGroupEl.classList.add("disabled")
+          }
           notify(`${error.message}`, "warning")
         })
     })  
@@ -133,8 +136,8 @@
                 <td>${pymt.CustomerId}</td>
                 <td>${pymt.Month}</td>
                 <td>${pymt.Amount}</td>
-                <td>${pymt.Date}</td>
-                <td>${pymt.UserId}</td>
+                <td>${pymt.DateString}</td>
+                <td>${resp.user}</td>
               </tr>
             `
           })

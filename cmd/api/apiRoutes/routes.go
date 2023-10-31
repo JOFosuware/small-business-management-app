@@ -26,6 +26,7 @@ func Routes() http.Handler {
 		mux.Get("/list-customers/{page}", apihandler.Repo.ListCustomersByPage)
 		mux.Get("/list-payments/{page}", apihandler.Repo.ListPaymentsByPage)
 		mux.Get("/list-purchases/{page}", apihandler.Repo.ListPurchasesByPage)
+		mux.Get("/expired", apihandler.Repo.SystemExpires)
 	})
 	return mux
 }

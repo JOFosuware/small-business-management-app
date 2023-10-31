@@ -12,6 +12,7 @@ CREATE TABLE customers (
     landmark VARCHAR,
     agreement VARCHAR,
     contract_status VARCHAR,
+    months INTEGER,
     user_id INTEGER,
     created_at TIMESTAMP,
     updated_at TIMESTAMP

@@ -59,6 +59,7 @@ type Customer struct {
 	Location        string
 	Landmark        string
 	Status          string
+	Months          int
 	Agreement       string
 	UserId          int
 	CreatedAt       time.Time
@@ -88,18 +89,19 @@ type Witness struct {
 
 // Client's items credited data struct
 type Item struct {
-	ID         int       `json:"-"`
-	CustomerId string    `json:"customerId"`
-	Serial     string    `json:"serial"`
-	Price      float32   `json:"price"`
-	Quantity   int       `json:"quantity"`
-	Total      float32   `json:"-"`
-	Deposit    float32   `json:"deposit"`
-	Balance    float32   `json:"balance"`
-	Image      []byte    `json:"-"`
-	UserId     int       `json:"-"`
-	CreatedAt  time.Time `json:"-"`
-	UpdatedAt  time.Time `json:"-"`
+	ID              int       `json:"-"`
+	CustomerId      string    `json:"customerId"`
+	Serial          string    `json:"serial"`
+	Price           float64   `json:"price"`
+	Quantity        int       `json:"quantity"`
+	Total           float64   `json:"-"`
+	Deposit         float64   `json:"deposit"`
+	Balance         float64   `json:"balance"`
+	UserId          int       `json:"-"`
+	CreatedAt       time.Time `json:"-"`
+	UpdatedAt       time.Time `json:"-"`
+	CreatedAtString string
+	UpdatedAtString string
 }
 
 type Friends struct {
@@ -110,20 +112,25 @@ type Friends struct {
 
 // Payment is the model type for payment database
 type Payments struct {
-	CustomerId string
-	Month      string
-	Amount     int
-	Date       time.Time
-	UserId     int
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+	CustomerId      string
+	Month           string
+	Amount          float64
+	Date            time.Time
+	UserId          int
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	DateString      string
+	CreatedAtString string
+	UpdatedAtString string
 }
 
 type Purchases struct {
-	Serial    string
-	Quantity  int
-	Amount    int
-	UserId    int
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	Serial          string
+	Quantity        int
+	Amount          float64
+	UserId          int
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	CreatedAtString string
+	UpdatedAtString string
 }

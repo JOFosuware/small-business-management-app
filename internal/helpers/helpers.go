@@ -6,6 +6,7 @@ import (
 	"image"
 	_ "image/jpeg"
 	"image/png"
+	"math"
 	"mime/multipart"
 	"net/http"
 	"runtime/debug"
@@ -55,4 +56,10 @@ func ProcessImage(file multipart.File) ([]byte, error) {
 	imgData := buf.Bytes()
 
 	return imgData, nil
+}
+
+func ToDecimalPlace(x float64, precision int) float64 {
+	multipler := math.Pow(10, float64(precision))
+	rounded := math.Round(x*multipler) / multipler
+	return rounded
 }

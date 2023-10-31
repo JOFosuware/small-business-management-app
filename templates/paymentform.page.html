@@ -97,9 +97,9 @@
                     class="form-control"
                     placeholder="Paying Amount"
                     aria-label="Paying Amount"
-                    id="payingamount"
+                    id="payingAmount"
                     value=""
-                    required
+                    required readonly
                   />
                   <div class="invalid-feedback">
                     Please enter customer's paying amount!
@@ -128,14 +128,21 @@
     <script>
         const custIdEl = document.getElementById("customerId")
         const balEl = document.getElementById("balance")
-        const pAmountEl = document.getElementById("payingamount")
+        const pAmountEl = document.getElementById("payingAmount")
         const errEl = document.getElementById("errorinfo")
         const balErrEl = document.getElementById("balErr")
         const addPayBtn = document.getElementById("btn-addPay")
 
         custIdEl.addEventListener("focusout", function(){
+          const custId = custIdEl.value 
+          if(custId === ""){
+            errEl.innerText = "Customer Id must be provided!"
+            return
+          }
 
-            const apiUrl = `http://localhost:8081/api/customer-debt/${custIdEl.value}`
+          errEl.innerText = ""
+
+            const apiUrl = `http://localhost:8081/api/customer-debt/${custId}`
             const requestHeader = {
                 method: "POST",
                 headers: {
@@ -153,34 +160,38 @@
 
                     errEl.innerText = ""
 
-                    if(res.debt === undefined){
+                    if(res.debt === undefined || res.debt === 0){
                       balErrEl.innerText = "Customer does not owe!"
                       balEl.value = "0.00"
+                      pAmountEl.value = "0.00"
                       addPayBtn.disabled = true
                       return
                     }
 
+                    console.log(res)
                     addPayBtn.disabled = false
                     balErrEl.innerText = ""
-                    balEl.value = res.debt
+                    balEl.value = "₵" + res.debt
+                    pAmountEl.value = "₵" + res.payment
                 })
                 .catch(err => {
                     errEl.innerText = err.message
                     balEl.value = ""
+                    pAmountEl.value = ""
                 })
         })
 
-        pAmountEl.addEventListener("focusout", function(){
-          const balance = balEl.value
-          const payingAmount = pAmountEl.value
-          const pAmountInfoEl = document.getElementById("pAmountInfo")
-          if((parseInt(payingAmount) - parseInt(balance)) > 0) {
-            pAmountInfoEl.innerText = "Check the payment!, customer is overpaying."
-            addPayBtn.disabled = true
-          }else{
-            pAmountInfoEl.innerText = ""
-            addPayBtn.disabled = false
-          }
-        })
+        // pAmountEl.addEventListener("focusout", function(){
+        //   const balance = balEl.value
+        //   const payingAmount = pAmountEl.value
+        //   const pAmountInfoEl = document.getElementById("pAmountInfo")
+        //   if((parseInt(payingAmount) - parseInt(balance)) > 0) {
+        //     pAmountInfoEl.innerText = "Check the payment!, customer is overpaying."
+        //     addPayBtn.disabled = true
+        //   }else{
+        //     pAmountInfoEl.innerText = ""
+        //     addPayBtn.disabled = false
+        //   }
+        // })
     </script>
 {{end}}

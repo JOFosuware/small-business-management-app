@@ -27,12 +27,12 @@
                   <th>Last name</th>
                   <th>Contract Status</th>
                   <th>Customer Image</th>
-                  <th>Recorder <sup>user</sup></th>
                   <th>Date of Entry</th>
+                  <th>Recorder <sup>user</sup></th>
                 </tr>
               </thead>
               <tbody id="listCustomers">
-                
+                {{$u := index .Data "user"}}
                 {{range $cust := index .Data "customers"}}
                     <tr>
                         <td>{{$cust.CustomerId}}</td>
@@ -40,8 +40,8 @@
                         <td>{{$cust.LastName}}</td>
                         <td>{{$cust.Status}}</td>
                         <td><img class="img-fluid" src="data:image/png;base64,{{convertToBase64 $cust.CustImage}}" alt="customer image"></td>
-                        <td>{{$cust.UserId}}</td>
-                        <td>{{humanDate $cust.CreatedAt}}</td>
+                        <td>{{humanDate $cust.UpdatedAt}}</td>
+                        <td>{{$u.Username}}</td>
                     </tr>
                 {{end}}
               </tbody>
@@ -68,6 +68,7 @@
 
 {{define "js"}}
   <script>
+    {{$u := index .Data "user"}}
     const listCustEl = document.getElementById("listCustomers")
     const nextPage = document.getElementById("nextPage")
     const prevPage = document.getElementById("prevPage")
@@ -87,7 +88,7 @@
         .then(resp => resp.json())
         .then(function(resp) {
           if(resp.error === true){
-            throw new Error(resp.error)
+            throw new Error(resp.message)
           }
 
           if(resp.customers.length < 6){
@@ -99,6 +100,7 @@
 
           listCustEl.innerHTML = ""
           resp.customers.forEach(function(cust){
+            const username = '{{$u.Username}}'
             listCustEl.innerHTML += `
               <tr>
                 <td>${cust.CustomerId}</td>
@@ -106,12 +108,15 @@
                 <td>${cust.LastName}</td>
                 <td>${cust.Status}</td>
                 <td><img class="img-fluid" src="data:image/png;base64,${cust.CustImgString}" alt="customer image"></td>
-                <td>${cust.UserId}</td>
-                <td>${cust.CreatedAtString}</td>
+                <td>${cust.UpdatedAtString}</td>
+                <td>${username}</td>
               </tr>
             `
           })
         }).catch(function(error){
+          if(error.message === "no more data"){
+            nextGroupEl.classList.add("disabled")
+          }
           notify(`${error.message}`, "warning")
         })
     })  
@@ -134,6 +139,7 @@
 
           listCustEl.innerHTML = ""
           resp.customers.forEach(function(cust){
+            const username = '{{$u.Username}}'
             listCustEl.innerHTML += `
               <tr>
                 <td>${cust.CustomerId}</td>
@@ -141,8 +147,8 @@
                 <td>${cust.LastName}</td>
                 <td>${cust.Status}</td>
                 <td><img class="img-fluid" src="data:image/png;base64,${cust.CustImgString}" alt="customer image"></td>
-                <td>${cust.UserId}</td>
-                <td>${cust.CreatedAtString}</td>
+                <td>${cust.UpdatedAtString}</td>
+                <td>${username}</td>
               </tr>
             `
           })

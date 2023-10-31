@@ -83,7 +83,7 @@
         .then(resp => resp.json())
         .then(function(resp) {
           if(resp.error === true){
-            throw new Error(resp.error)
+            throw new Error(resp.message)
           }
 
           if(resp.products.length < 6){
@@ -106,6 +106,9 @@
             `
           })
         }).catch(function(error){
+          if(error.message === "no more data"){
+            nextGroupEl.classList.add("disabled")
+          }
           notify(`${error.message}`, "warning")
         })
     })  

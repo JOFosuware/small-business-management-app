@@ -29,13 +29,13 @@
                 </tr>
               </thead>
               <tbody id="listPurchases">
-                
+                {{$u := index .Data "user"}}
                 {{range $p := index .Data "purchases"}}
                     <tr>
                         <td>{{$p.Serial}}</td>
                         <td>{{$p.Quantity}}</td>
-                        <td>{{humanDate $p.CreatedAt}}</td>
-                        <td>{{$p.UserId}}</td>
+                        <td>{{humanDate $p.UpdatedAt}}</td>
+                        <td>{{$u.Username}}</td>
                     </tr>
                 {{end}}
               </tbody>
@@ -62,6 +62,7 @@
 
 {{define "js"}}
   <script>
+    {{$u := index .Data "user"}}
     const listPurchEl = document.getElementById("listPurchases")
     const nextPage = document.getElementById("nextPage")
     const prevPage = document.getElementById("prevPage")
@@ -81,7 +82,7 @@
         .then(resp => resp.json())
         .then(function(resp) {
           if(resp.error === true){
-            throw new Error(resp.error)
+            throw new Error(resp.message)
           }
 
           if(resp.purchases.length < 6){
@@ -93,16 +94,20 @@
 
           listPurchEl.innerHTML = ""
           resp.purchases.forEach(function(p){
+            const username = '{{$u.Username}}'
             listPurchEl.innerHTML += `
               <tr>
                 <td>${p.Serial}</td>
                 <td>${p.Quantity}</td>
-                <td>${p.CreatedAt}</td>
-                <td>${p.UserId}</td>
+                <td>${p.UpdatedAtString}</td>
+                <td>${username}</td>
               </tr>
             `
           })
         }).catch(function(error){
+          if(error.message === "no more data"){
+            nextGroupEl.classList.add("disabled")
+          }
           notify(`${error.message}`, "warning")
         })
     })  
@@ -113,7 +118,7 @@
         .then(resp => resp.json())
         .then(function(resp) {
           if(resp.error === true){
-            throw new Error(resp.error)
+            throw new Error(resp.message)
           }
 
           if(page === 1){
@@ -125,17 +130,18 @@
 
           listPurchEl.innerHTML = ""
           resp.purchases.forEach(function(p){
+            const username = '{{$u.Username}}'
             listPurchEl.innerHTML += `
               <tr>
                 <td>${p.Serial}</td>
                 <td>${p.Quantity}</td>
-                <td>${p.CreatedAt}</td>
-                <td>${p.UserId}</td>
+                <td>${p.UpdatedAtString}</td>
+                <td>${username}</td>
               </tr>
             `
           })
         }).catch(function(error){
-          //notify(`${error.message}`, "warning")
+          notify(`${error.message}`, "warning")
         })
     })
 

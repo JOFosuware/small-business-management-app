@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/jofosuware/small-business-management-app/internal/config"
+	"github.com/jofosuware/small-business-management-app/internal/helpers"
 	"github.com/jofosuware/small-business-management-app/internal/models"
 	"github.com/justinas/nosurf"
 )
@@ -23,6 +24,7 @@ var functions = template.FuncMap{
 	"humanDate":       HumanDate,
 	"formatDate":      FormatDate,
 	"convertToBase64": ConvertToBase64,
+	"toDecimalPlace":  helpers.ToDecimalPlace,
 }
 
 // NewRenderer sets the config for the templates package

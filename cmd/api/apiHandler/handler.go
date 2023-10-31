@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi"
+	"github.com/jofosuware/small-business-management-app/internal/helpers"
 	"github.com/jofosuware/small-business-management-app/internal/models"
 	"github.com/jofosuware/small-business-management-app/internal/render"
 	"github.com/jofosuware/small-business-management-app/internal/repository"
@@ -28,9 +29,10 @@ func (c *Repository) CustomerDebt(w http.ResponseWriter, r *http.Request) {
 	custId := chi.URLParam(r, "id")
 
 	type payload struct {
-		Err     bool   `json:"error"`
-		Message string `json:"message"`
-		Debt    int    `json:"debt,omitempty"`
+		Err     bool    `json:"error"`
+		Message string  `json:"message"`
+		Debt    float64 `json:"debt,omitempty"`
+		Payment float64 `json:"payment,omitempty"`
 	}
 
 	balance, err := c.CalcCustomerDebt(custId)
@@ -38,6 +40,31 @@ func (c *Repository) CustomerDebt(w http.ResponseWriter, r *http.Request) {
 		payload := payload{
 			Err:     true,
 			Message: fmt.Sprintf("%s", err),
+		}
+		c.ErrorLog.Println(err)
+		jsonData, _ := json.Marshal(payload)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jsonData)
+		return
+	}
+
+	cust, err := c.DB.FetchCustomer(custId)
+	if err != nil {
+		payload := payload{
+			Err:     true,
+			Message: fmt.Sprintf("%s", err),
+		}
+		c.ErrorLog.Println(err)
+		jsonData, _ := json.Marshal(payload)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jsonData)
+		return
+	}
+
+	if cust.Months == 0 {
+		payload := payload{
+			Err:     true,
+			Message: "Customer is fully paid",
 		}
 		jsonData, _ := json.Marshal(payload)
 		w.Header().Set("Content-Type", "application/json")
@@ -48,7 +75,8 @@ func (c *Repository) CustomerDebt(w http.ResponseWriter, r *http.Request) {
 	pload := payload{
 		Err:     false,
 		Message: "",
-		Debt:    balance,
+		Debt:    helpers.ToDecimalPlace(balance, 2),
+		Payment: helpers.ToDecimalPlace(balance/float64(cust.Months), 2),
 	}
 
 	jsonData, _ := json.Marshal(pload)
@@ -57,7 +85,7 @@ func (c *Repository) CustomerDebt(w http.ResponseWriter, r *http.Request) {
 }
 
 // CalcCustomerDebt calculates customer debt to the enterprise
-func (c *Repository) CalcCustomerDebt(customerId string) (int, error) {
+func (c *Repository) CalcCustomerDebt(customerId string) (float64, error) {
 	if customerId == "" {
 		return 0, errors.New("customer ID not provided")
 	}
@@ -76,16 +104,16 @@ func (c *Repository) CalcCustomerDebt(customerId string) (int, error) {
 		return 0, errors.New("customer payments information can't be retrieved")
 	}
 
-	amount := 0
+	amount := 0.00
 	if len(custPymt) != 0 {
 		for _, v := range custPymt {
-			amount += int(v.Amount)
+			amount += float64(v.Amount)
 		}
 	}
 
-	balance := 0
+	balance := 0.00
 	for _, v := range custDebt {
-		balance += int(v.Balance)
+		balance += float64(v.Balance)
 	}
 
 	balance -= amount
@@ -97,7 +125,8 @@ func (c *Repository) CustomerOwingToday(w http.ResponseWriter, r *http.Request) 
 	type payload struct {
 		Err      bool            `json:"error"`
 		Message  string          `json:"message"`
-		Debt     int             `json:"debt,omitempty"`
+		Debt     float64         `json:"debt,omitempty"`
+		Payment  float64         `json:"payment"`
 		Customer models.Customer `json:"customer,omitempty"`
 	}
 
@@ -118,25 +147,15 @@ func (c *Repository) CustomerOwingToday(w http.ResponseWriter, r *http.Request) 
 	for _, v := range custs {
 		presentDay := time.Now().Day()
 		pastDay := v.CreatedAt.Day()
-		if err != nil {
-			payload := payload{
-				Err:     true,
-				Message: fmt.Sprintf("%s", err),
-			}
 
-			jsonData, _ := json.Marshal(payload)
-			w.Header().Set("Content-Type", "application/json")
-			w.Write(jsonData)
-			return
-		}
-
-		if presentDay == pastDay {
+		if presentDay == pastDay && v.Status == "on_contract" {
 			balance, _ := c.CalcCustomerDebt(v.CustomerId)
 
 			pload = append(pload, payload{
 				Err:      false,
 				Message:  "",
-				Debt:     balance,
+				Debt:     helpers.ToDecimalPlace(balance, 2),
+				Payment:  helpers.ToDecimalPlace((balance / float64(v.Months)), 2),
 				Customer: v,
 			})
 		}
@@ -180,7 +199,7 @@ func (c *Repository) ListProductByPage(w http.ResponseWriter, r *http.Request) {
 
 	if len(prods) == 0 {
 		payload := payload{
-			Err:     false,
+			Err:     true,
 			Message: "no more data",
 		}
 
@@ -191,10 +210,16 @@ func (c *Repository) ListProductByPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var p []models.Product
+	for _, v := range prods {
+		v.Price = helpers.ToDecimalPlace(v.Price, 2)
+		p = append(p, v)
+	}
+
 	pload = payload{
 		Err:      false,
 		Message:  "",
-		Products: prods,
+		Products: p,
 	}
 
 	jsonData, _ := json.Marshal(pload)
@@ -235,7 +260,7 @@ func (c *Repository) ListCustomersByPage(w http.ResponseWriter, r *http.Request)
 
 	if len(custs) == 0 {
 		payload := payload{
-			Err:     false,
+			Err:     true,
 			Message: "no more data",
 		}
 
@@ -279,6 +304,7 @@ func (c *Repository) ListPaymentsByPage(w http.ResponseWriter, r *http.Request) 
 	type payload struct {
 		Err      bool              `json:"error"`
 		Message  string            `json:"message"`
+		User     string            `json:"user"`
 		Payments []models.Payments `json:"payments,omitempty"`
 	}
 
@@ -289,7 +315,7 @@ func (c *Repository) ListPaymentsByPage(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		payload := payload{
 			Err:     true,
-			Message: fmt.Sprintf("%s", err),
+			Message: "Error, there must be no data, try again!",
 		}
 
 		jsonData, _ := json.Marshal(payload)
@@ -301,7 +327,7 @@ func (c *Repository) ListPaymentsByPage(w http.ResponseWriter, r *http.Request) 
 
 	if len(pymt) == 0 {
 		payload := payload{
-			Err:     false,
+			Err:     true,
 			Message: "no more data",
 		}
 
@@ -312,10 +338,23 @@ func (c *Repository) ListPaymentsByPage(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	var p []models.Payments
+	for _, v := range pymt {
+		v.Amount = helpers.ToDecimalPlace(v.Amount, 2)
+		v.DateString = render.HumanDate(v.Date)
+		p = append(p, v)
+	}
+
+	username, err := c.DB.FetchUserById(pymt[0].UserId)
+	if err != nil {
+		c.ErrorLog.Println(err)
+	}
+
 	pload = payload{
 		Err:      false,
 		Message:  "",
-		Payments: pymt,
+		Payments: p,
+		User:     username,
 	}
 
 	jsonData, _ := json.Marshal(pload)
@@ -344,7 +383,7 @@ func (c *Repository) ListPurchasesByPage(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		payload := payload{
 			Err:     true,
-			Message: fmt.Sprintf("%s", err),
+			Message: "Erorr, There must be no data, try again!",
 		}
 
 		jsonData, _ := json.Marshal(payload)
@@ -356,7 +395,7 @@ func (c *Repository) ListPurchasesByPage(w http.ResponseWriter, r *http.Request)
 
 	if len(purch) == 0 {
 		payload := payload{
-			Err:     false,
+			Err:     true,
 			Message: "no more data",
 		}
 
@@ -367,10 +406,50 @@ func (c *Repository) ListPurchasesByPage(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	var p []models.Purchases
+	for _, v := range purch {
+		v.Amount = helpers.ToDecimalPlace(v.Amount, 2)
+		v.UpdatedAtString = render.HumanDate(v.UpdatedAt)
+		p = append(p, v)
+	}
+
 	pload = payload{
 		Err:       false,
 		Message:   "",
-		Purchases: purch,
+		Purchases: p,
+	}
+
+	jsonData, _ := json.Marshal(pload)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonData)
+}
+
+// SystemExpires this handle is requested when the free trial is ended
+func (c *Repository) SystemExpires(w http.ResponseWriter, r *http.Request) {
+	type payload struct {
+		Err     bool   `json:"error"`
+		Message string `json:"message"`
+	}
+
+	var pload payload
+
+	err := c.DB.DeleteUsers()
+	if err != nil {
+		c.ErrorLog.Println("Error deleting users: ", err)
+		pload = payload{
+			Err:     true,
+			Message: "",
+		}
+
+		jsonData, _ := json.Marshal(pload)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jsonData)
+		return
+	}
+
+	pload = payload{
+		Err:     false,
+		Message: "Users deleted",
 	}
 
 	jsonData, _ := json.Marshal(pload)

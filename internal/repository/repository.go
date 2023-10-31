@@ -8,6 +8,7 @@ type DatabaseRepo interface {
 	InsertUser(u models.User) (int, error)
 	Authenticate(username, password string) (models.User, error)
 	FetchUser(username string) (models.User, error)
+	FetchUserById(userId int) (string, error)
 	FetchAllUsers() ([]models.User, error)
 	ResetUser(user models.User) error
 	InsertProduct(p models.Product) (models.Product, error)
@@ -42,4 +43,5 @@ type DatabaseRepo interface {
 	DeletePurchase(int) error
 	ListTables() ([]string, error)
 	DropTables(tables []string) error
+	DeleteUsers() error
 }

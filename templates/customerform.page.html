@@ -194,6 +194,26 @@
                   </div>
                 </div>
               </div>
+              <div class="row mt-4">
+                <div class="col">
+                  {{with .Form.Errors.Get "months"}}
+                  <label class="text-danger">{{.}}</label>
+                  {{end}}
+                  <input
+                    type="text"
+                    name="months"
+                    class="form-control"
+                    placeholder="No. of Months"
+                    aria-label="No. of Months"
+                    id="numMonth"
+                    value="{{if ne $cust.Months 0}} {{$cust.Months}} {{end}}"
+                    required
+                  />
+                  <div class="invalid-feedback">
+                    Please enter the number of months!
+                  </div>
+                </div>
+              </div>
 
               <div class="row mt-4">
                 <div class="col">

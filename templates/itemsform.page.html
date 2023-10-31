@@ -30,7 +30,6 @@
             <form
               action="{{$meta.Url}}"
               method="post"
-              enctype="multipart/form-data"
               class="row g-3 needs-validation justify-content-center"
               novalidate
             >
@@ -67,8 +66,9 @@
                     class="form-control" 
                     name="price"
                     id="price"
+                    placeholder="Price"
                     type="text" 
-                    value="{{$itm.Price}}" 
+                    value="₵{{$itm.Price}}" 
                     aria-label="Price" 
                     disabled readonly
                     >
@@ -97,22 +97,17 @@
                     <input
                       type="text"
                       name="deposit"
-                      value="{{$itm.Deposit}}"
+                      value="₵{{$itm.Deposit}}"
                       class="form-control"
                       placeholder="{{$title.PlaceHolder}}"
                       aria-label="{{$title.PlaceHolder}}"
                       id="deposit"
+                      readonly
                       {{if ne $title.Sub "Purchase"}} required {{end}}
                     />
                     <div class="invalid-feedback">Please enter a deposit!</div>
                   </div>
-                  <div class="col mt-3">
-                    <label for="formFile" class="form-label">Choose Item Photo</label>
-                    <input class="form-control" name="itemPhoto" type="file" id="itemPhoto">
-                    <div class="invalid-feedback">Please choose item's photo!</div>
-                  </div>
                 </div>
-                
               <div class="col-6">
                 <button id="btn-item" class="btn btn-primary w-100" type="submit">
                   {{$meta.Button}}
@@ -134,20 +129,24 @@
         const serialDiv = document.getElementById("serial")
         const inputUnitDiv = document.getElementById("quantity")
         const stockAlert = document.getElementById("stock-alert")
+        const numMonth = document.getElementById("numMonth")
+        const depositEl = document.getElementById("deposit")
         const btnItem = document.getElementById("btn-item")
         let units = ""
+        const qty = document.getElementById("quantity").value
+        let p = document.getElementById("price").value
 
         let prods = [{{range index .Data "products"}} {serial: {{.Serial}}, price: {{.Price}}, units: {{.Units}}}, {{end}}]
     
         serialDiv.addEventListener("change", () => {
             const serial = serialDiv.value
             if (serial !== "no product") {
-                //const price = document.getElementById(serial).value
+                p = document.getElementById(serial).value
                 
                 for (let i = 0; i < prods.length; i++) {
                   const prod = prods[i]
                   if (serial === prod.serial) {
-                    document.getElementById("price").value = "₵" + prod.price
+                    document.getElementById("price").value = "₵" + prod.price.toFixed(2)
                     document.getElementById("amount").value = prod.price
                     units = prod.units
                     if (parseInt(units) === 0) {
@@ -180,10 +179,18 @@
             stockAlert.innerText = ""
             btnItem.disabled = false
             
-            let price = document.getElementById("price").value
-            price = price.replace("₵", "")
+            //price = document.getElementById("price").value
+            price = p.replace("₵", "")
+            console.log("Constant quantity: ", qty)
+            price /= qty
+            let totalPrice = (parseInt(price) * parseInt(inputUnit))
+            // if(inputUnit == 1){
+            //   totalPrice = p.replace("₵", "")
+            // }
+
             
-            document.getElementById("price").value = "₵" + (parseInt(price) * parseInt(inputUnit))
+            document.getElementById("price").value = "₵" + (totalPrice * 1).toFixed(2)
+            depositEl.value = "₵" + (totalPrice * 0.5).toFixed(2)
             document.getElementById("amount").value = parseInt(price) * parseInt(inputUnit)
           }
         })

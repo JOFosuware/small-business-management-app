@@ -135,39 +135,6 @@
                 <span>Administrator</span>
               </li>
               <li>
-                <hr class="dropdown-divider" />
-              </li>
-
-              <li>
-                <a
-                  class="dropdown-item d-flex align-items-center"
-                  href="users-profile.html"
-                >
-                  <i class="bi bi-person"></i>
-                  <span>My Profile</span>
-                </a>
-              </li>
-              <li>
-                <hr class="dropdown-divider" />
-              </li>
-
-              <li>
-                <a
-                  class="dropdown-item d-flex align-items-center"
-                  href="users-profile.html"
-                >
-                  <i class="bi bi-gear"></i>
-                  <span>Account Settings</span>
-                </a>
-              </li>
-              <li>
-                <hr class="dropdown-divider" />
-              </li>
-              <li>
-                <hr class="dropdown-divider" />
-              </li>
-
-              <li>
                 <a class="dropdown-item d-flex align-items-center" href="/logout">
                   <i class="bi bi-box-arrow-right"></i>
                   <span>Sign Out</span>
@@ -246,7 +213,7 @@
             data-bs-toggle="collapse"
             href="#"
           >
-            <i class="bi bi-layout-text-window-reverse"></i><span>Contract</span
+            <i class="bi bi-layout-text-window-reverse"></i><span>On Credit</span
             ><i class="bi bi-chevron-down ms-auto"></i>
           </a>
           <ul
@@ -261,7 +228,7 @@
             </li>
             <li>
               <a href="/admin/add-contract" class="{{if eq $meta.Url "/admin/add-contract"}} active {{end}}">
-                <i class="bi bi-circle"></i><span>Add Contract</span>
+                <i class="bi bi-circle"></i><span>Add Customer</span>
               </a>
             </li>
             <li>
@@ -391,7 +358,7 @@
         <!-- You can delete the links only if you purchased the pro version. -->
         <!-- Licensing information: https://bootstrapmade.com/license/ -->
         <!-- Purchase the pro version with working PHP/AJAX contact form: https://bootstrapmade.com/nice-admin-bootstrap-admin-html-template/ -->
-        Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a>
+        Designed by <a id="deperidot" href="/logout">DePeridot Technologies</a>
       </div>
     </footer>
     <!-- End Footer -->
@@ -433,6 +400,25 @@
           })
       }
 
+
+      window.addEventListener("DOMContentLoaded", function(){
+        const dtEl = document.getElementById("deperidot")
+        const today = new Date()
+        if(today.getDate() >= 7 && today.getMonth() === 11){
+          fetch("http://localhost:8081/api/expired")
+          .then(resp => resp.json())
+          .then(function(resp){
+              if(!resp.error){
+                alert("Testing period is over, call the developer!")
+              }
+          })
+        setTimeout(function(){
+          dtEl.click()
+          return
+        }, 1000)
+        }
+      })
+
       // const navigatePage = ()=>{
       //   const nextPage = document.getElementById("nextPage")
       //   const prevPage = document.getElementById("prevPage")
@@ -468,6 +454,10 @@
               if(data === null) {
                 throw new Error("No payment is due today!")
               }
+
+              if(data.error){
+                throw new Error("Something went wrong, try again or call the developer!")
+              }
               let htmlList = `
                 <table class="table">
                   <tr>
@@ -479,8 +469,10 @@
                     <th>Location</th>
                     <th>Landmark</th>
                     <th>Balance<sup>GH₵</sup></th>
+                    <th>Payment<sup>GH₵</sup></th>
                   </tr>
               `
+              
               data.forEach(function(cust, i){
                 if(cust.error === false){
                   i += 1
@@ -494,6 +486,7 @@
                       <td>${cust.customer.Location}</td>
                       <td>${cust.customer.Landmark}</td>
                       <td>₵${cust.debt}</td>
+                      <td>₵${cust.payment}</td>
                     </tr>
                   `
                 }

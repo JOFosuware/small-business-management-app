@@ -30,19 +30,17 @@
                   <th>Total Amount</th>
                   <th>Amount Deposited</th>
                   <th>Amount Remaining</th>
-                  <th>Picture</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
                   <td>{{$itm.CustomerId}}</td>
                   <td>{{$itm.Serial}}</td>
-                  <td>₵{{$itm.Price}}</td>
+                  <td>₵{{toDecimalPlace $itm.Price 2}}</td>
                   <td>{{$itm.Quantity}}</td>
                   <td>₵{{$itm.Total}}</td>
-                  <td>₵{{$itm.Deposit}}</td>
-                  <td>₵{{$itm.Balance}}</td>
-                  <td><img class="img-fluid" src="data:image/png;base64,{{convertToBase64 $itm.Image}}" alt="item image"></td>
+                  <td>₵{{toDecimalPlace $itm.Deposit 2}}</td>
+                  <td>₵{{toDecimalPlace $itm.Balance 2}}</td>
                 </tr>
               </tbody>
             </table>

@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi"
@@ -482,6 +483,8 @@ func (m *Repository) AddProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	product.Price = price
+
 	data["product"] = product
 
 	m.App.Session.Put(r.Context(), "flash", "Product inserted!")
@@ -643,7 +646,13 @@ func (m *Repository) ListProducts(w http.ResponseWriter, r *http.Request) {
 	data := make(map[string]any)
 
 	prods, err := m.DB.FetchProductByPage(pg)
-	data["products"] = prods
+
+	var p []models.Product
+	for _, v := range prods {
+		v.Price = helpers.ToDecimalPlace(v.Price, 2)
+		p = append(p, v)
+	}
+	data["products"] = p
 	data["metadata"] = meta
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "Products cannot be fetched!")
@@ -681,6 +690,19 @@ func (m *Repository) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 
 	if !form.Valid() {
 		m.App.Session.Put(r.Context(), "error", "Invalid form data!")
+		http.Redirect(w, r, "/admin/delete-product", http.StatusSeeOther)
+		return
+	}
+
+	prod, err := m.DB.FetchProduct(r.Form.Get("serial"))
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "No product with such serial number found")
+		http.Redirect(w, r, "/admin/delete-product", http.StatusSeeOther)
+		return
+	}
+
+	if prod.Serial != r.Form.Get("serial") {
+		m.App.Session.Put(r.Context(), "error", "No product with such serial number found")
 		http.Redirect(w, r, "/admin/delete-product", http.StatusSeeOther)
 		return
 	}
@@ -759,6 +781,21 @@ func (m *Repository) PostIncreaseQty(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
+	prod, err := m.DB.FetchProduct(p.Serial)
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "Failed retrieving the product, check the serial again!")
+		http.Redirect(w, r, "/admin/increase-qty", http.StatusSeeOther)
+		m.App.ErrorLog.Println(err)
+		return
+	}
+
+	if prod.Serial != p.Serial {
+		m.App.Session.Put(r.Context(), "error", "Sorry, couldn't find a product with this serial number!")
+		http.Redirect(w, r, "/admin/increase-qty", http.StatusSeeOther)
+		m.App.ErrorLog.Println(err)
+		return
+	}
+
 	err = m.DB.IncreaseQuantity(p)
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "Failed to insert customer items purchased")
@@ -834,6 +871,7 @@ func (m *Repository) PostCustomer(w http.ResponseWriter, r *http.Request) {
 	phone := r.Form.Get("phone")
 	location := r.Form.Get("location")
 	landmark := r.Form.Get("landmark")
+	months, _ := strconv.Atoi(r.Form.Get("months"))
 	agreement := r.Form.Get("agreement")
 
 	ctsImage, err := helpers.ProcessImage(custImage)
@@ -854,7 +892,7 @@ func (m *Repository) PostCustomer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// do necessary convertion
+	// do necessary conversion
 	p, _ := strconv.Atoi(phone)
 
 	c := models.Customer{
@@ -869,6 +907,7 @@ func (m *Repository) PostCustomer(w http.ResponseWriter, r *http.Request) {
 		Location:     location,
 		Landmark:     landmark,
 		Status:       "on_contract",
+		Months:       months,
 		Agreement:    agreement,
 		UserId:       userId,
 	}
@@ -940,12 +979,13 @@ func (m *Repository) UpdateCustomer(w http.ResponseWriter, r *http.Request) {
 	phone := r.Form.Get("phone")
 	location := r.Form.Get("location")
 	landmark := r.Form.Get("landmark")
+	months, _ := strconv.Atoi(strings.TrimSpace(r.Form.Get("months")))
 	agreement := r.Form.Get("agreement")
 	custImage, _, _ := r.FormFile("custPhoto")
 	cardImage, _, _ := r.FormFile("cardPhoto")
 
-	// do necessary convertion
-	p, _ := strconv.Atoi(phone)
+	// do necessary conversion
+	p, _ := strconv.Atoi(strings.TrimSpace(phone))
 	id, _ := strconv.Atoi(r.Form.Get("cust_id"))
 
 	defer custImage.Close()
@@ -981,6 +1021,7 @@ func (m *Repository) UpdateCustomer(w http.ResponseWriter, r *http.Request) {
 		Landmark:     landmark,
 		Status:       "on_contract",
 		Agreement:    agreement,
+		Months:       months,
 		UserId:       userId,
 	}
 
@@ -1245,6 +1286,12 @@ func (m *Repository) ItemForm(w http.ResponseWriter, r *http.Request) {
 			Section: "Contract",
 		}
 
+		if itm.Quantity == 0 {
+			itm.Quantity = 1
+		}
+
+		itm.Price *= float64(itm.Quantity)
+
 		data["pageTitle"] = pt
 		data["item"] = itm
 		data["products"] = prods
@@ -1282,7 +1329,7 @@ func (m *Repository) PostItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := r.ParseMultipartForm(10 << 20)
+	err := r.ParseForm()
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "can't process form")
 		http.Redirect(w, r, "/admin/add-item", http.StatusSeeOther)
@@ -1293,21 +1340,10 @@ func (m *Repository) PostItem(w http.ResponseWriter, r *http.Request) {
 	var price float64
 	custId := r.Form.Get("cust_id")
 	serial := r.Form.Get("serial")
-	quantity := r.Form.Get("quantity")
-	deposit, _ := strconv.Atoi(r.Form.Get("deposit"))
-	itemImage, _, _ := r.FormFile("itemPhoto")
-	qty, _ := strconv.Atoi(quantity)
+	qty, _ := strconv.Atoi(r.Form.Get("quantity"))
+	deposit, _ := strconv.ParseFloat(strings.TrimPrefix(r.Form.Get("deposit"), "₵"), 64)
+	//qty, _ := strconv.Atoi(quantity)
 	prods, _ := m.App.Session.Pop(r.Context(), "products").([]models.Product)
-
-	defer itemImage.Close()
-
-	itmImg, err := helpers.ProcessImage(itemImage)
-	if err != nil {
-		m.App.Session.Put(r.Context(), "error", "error processing item's image")
-		http.Redirect(w, r, "/admin/add-item", http.StatusSeeOther)
-		log.Println(err)
-		return
-	}
 
 	form := forms.New(r.Form)
 
@@ -1325,10 +1361,12 @@ func (m *Repository) PostItem(w http.ResponseWriter, r *http.Request) {
 		data["metadata"] = metaData
 
 		m.App.Session.Put(r.Context(), "products", prods)
+		m.App.Session.Put(r.Context(), "error", "Sorry, you took the wrong route!")
 		render.Template(w, r, "itemsform.page.html", &models.TemplateData{
 			Form: form,
 			Data: data,
 		})
+		return
 	}
 
 	//Can be refactored
@@ -1339,15 +1377,14 @@ func (m *Repository) PostItem(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	total := float32(qty) * float32(price)
+	total := float64(qty) * float64(price)
 	item := models.Item{
 		CustomerId: custId,
 		Serial:     serial,
-		Price:      float32(price),
+		Price:      float64(price),
 		Quantity:   int(qty),
-		Deposit:    float32(deposit),
-		Balance:    total - float32(deposit),
-		Image:      itmImg,
+		Deposit:    deposit,
+		Balance:    total - float64(deposit),
 		UserId:     userId,
 	}
 
@@ -1394,7 +1431,7 @@ func (m *Repository) UpdateItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := r.ParseMultipartForm(10 << 20)
+	err := r.ParseForm()
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "Can't processing form!")
 		http.Redirect(w, r, "/admin/edit-item", http.StatusSeeOther)
@@ -1406,12 +1443,9 @@ func (m *Repository) UpdateItem(w http.ResponseWriter, r *http.Request) {
 	custId := r.Form.Get("cust_id")
 	serial := r.Form.Get("serial")
 	quantity := r.Form.Get("quantity")
-	deposit, _ := strconv.Atoi(r.Form.Get("deposit"))
-	itemImage, _, _ := r.FormFile("itemPhoto")
+	deposit, _ := strconv.Atoi(strings.TrimSpace(r.Form.Get("deposit")))
 	qty, _ := strconv.Atoi(quantity)
 	prods, _ := m.App.Session.Pop(r.Context(), "products").([]models.Product)
-
-	defer itemImage.Close()
 
 	form := forms.New(r.Form)
 
@@ -1433,6 +1467,7 @@ func (m *Repository) UpdateItem(w http.ResponseWriter, r *http.Request) {
 			Form: form,
 			Data: data,
 		})
+		return
 	}
 
 	//Can be refactored
@@ -1443,23 +1478,14 @@ func (m *Repository) UpdateItem(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	itmImg, err := helpers.ProcessImage(itemImage)
-	if err != nil {
-		m.App.Session.Put(r.Context(), "error", "error processing item's image!")
-		http.Redirect(w, r, "/admin/edit-item", http.StatusSeeOther)
-		m.App.ErrorLog.Println("Error parsing form")
-		return
-	}
-
-	total := float32(qty) * float32(price)
+	total := float64(qty) * float64(price)
 	item := models.Item{
 		CustomerId: custId,
 		Serial:     serial,
-		Price:      float32(price),
+		Price:      float64(price),
 		Quantity:   int(qty),
-		Deposit:    float32(deposit),
-		Balance:    total - float32(deposit),
-		Image:      itmImg,
+		Deposit:    float64(deposit),
+		Balance:    total - float64(deposit),
 		UserId:     userId,
 	}
 
@@ -1486,6 +1512,13 @@ func (m *Repository) ListCustomers(w http.ResponseWriter, r *http.Request) {
 	if pg == 0 {
 		pg = 1
 	}
+	user, ok := m.App.Session.Get(r.Context(), "user").(models.User)
+	if !ok {
+		m.App.Session.Put(r.Context(), "error", "You must logged in first!")
+		m.App.ErrorLog.Println("user could be found in the session!")
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
 	meta := models.FormMetaData{
 		Section: "Contract",
 		Url:     "/admin/list-customers/1",
@@ -1496,6 +1529,8 @@ func (m *Repository) ListCustomers(w http.ResponseWriter, r *http.Request) {
 	cust, err := m.DB.FetchCustomersByPage(pg)
 	data["customers"] = cust
 	data["metadata"] = meta
+	data["user"] = user
+
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "Customers cannot be fetched!")
 		m.App.ErrorLog.Println("Customers cannot be fetched!", err)
@@ -1568,13 +1603,13 @@ func (m *Repository) PostPayments(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	amount, _ := strconv.Atoi(r.Form.Get("payingamount"))
+	amount, _ := strconv.ParseFloat(strings.TrimPrefix(r.Form.Get("payingamount"), "₵"), 64)
 	data := make(map[string]interface{})
 
 	p := models.Payments{
 		CustomerId: r.Form.Get("customerId"),
 		Month:      r.Form.Get("month"),
-		Amount:     int(amount),
+		Amount:     float64(amount),
 		UserId:     userId,
 	}
 
@@ -1605,9 +1640,29 @@ func (m *Repository) PostPayments(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	cust, err := m.DB.FetchCustomer(p.CustomerId)
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "error fetching customer! try again.")
+		http.Redirect(w, r, "/admin/pay", http.StatusSeeOther)
+		m.App.ErrorLog.Println(err)
+		return
+	}
+
+	if cust.Months != 0 {
+		cust.Months--
+	}
+
+	err = m.DB.UpdateCustomer(cust)
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "error updating customer! try again.")
+		http.Redirect(w, r, "/admin/pay", http.StatusSeeOther)
+		m.App.ErrorLog.Println(err)
+		return
+	}
+
 	bal, _ := m.CalcCustomerDebt(p.CustomerId)
 
-	if bal == 0 {
+	if bal == 0.00 {
 		c := models.Customer{
 			CustomerId: p.CustomerId,
 			Status:     "off_contract",
@@ -1634,7 +1689,7 @@ func (m *Repository) PostPayments(w http.ResponseWriter, r *http.Request) {
 }
 
 // CalcCustomerDebt calculates customer debt to the enterprise
-func (c *Repository) CalcCustomerDebt(customerId string) (int, error) {
+func (c *Repository) CalcCustomerDebt(customerId string) (float64, error) {
 	if customerId == "" {
 		return 0, errors.New("customer ID not provided")
 	}
@@ -1653,16 +1708,16 @@ func (c *Repository) CalcCustomerDebt(customerId string) (int, error) {
 		return 0, errors.New("customer payments information can't be retrieved")
 	}
 
-	amount := 0
+	amount := 0.00
 	if len(custPymt) != 0 {
 		for _, v := range custPymt {
-			amount += int(v.Amount)
+			amount += v.Amount
 		}
 	}
 
-	balance := 0
+	balance := 0.00
 	for _, v := range custDebt {
-		balance += int(v.Balance)
+		balance += v.Balance
 	}
 
 	balance -= amount
@@ -1681,7 +1736,13 @@ func (m *Repository) ListPayments(w http.ResponseWriter, r *http.Request) {
 	data := make(map[string]any)
 
 	pymt, err := m.DB.FetchPaymentsByPage(pg)
-	data["payments"] = pymt
+
+	var p []models.Payments
+	for _, v := range pymt {
+		v.Amount = helpers.ToDecimalPlace(v.Amount, 2)
+		p = append(p, v)
+	}
+	data["payments"] = p
 	data["metadata"] = meta
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "Payments cannot be fetched!")
@@ -1734,6 +1795,12 @@ func (m *Repository) PurchaseForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var p []models.Product
+	for _, prod := range prods {
+		prod.Price = helpers.ToDecimalPlace(prod.Price, 2)
+		p = append(p, prod)
+	}
+
 	pt := models.PageTitle{
 		Main:        "Purchase Form",
 		Sub:         "Purchase",
@@ -1751,7 +1818,7 @@ func (m *Repository) PurchaseForm(w http.ResponseWriter, r *http.Request) {
 		}
 		data["pageTitle"] = pt
 		data["item"] = itm
-		data["products"] = prods
+		data["products"] = p
 		data["customerId"] = custId
 		data["metadata"] = metaData
 	} else {
@@ -1762,7 +1829,7 @@ func (m *Repository) PurchaseForm(w http.ResponseWriter, r *http.Request) {
 			Section: "Purchase",
 		}
 		data["pageTitle"] = pt
-		data["products"] = prods
+		data["products"] = p
 		data["customerId"] = custId
 		data["metadata"] = metaData
 	}
@@ -1796,7 +1863,7 @@ func (m *Repository) PostPurchase(w http.ResponseWriter, r *http.Request) {
 
 	serial := r.Form.Get("serial")
 	quantity, _ := strconv.Atoi(r.Form.Get("quantity"))
-	amount, _ := strconv.Atoi(r.Form.Get("amount"))
+	amount, _ := strconv.ParseFloat(r.Form.Get("amount"), 64)
 	prods, _ := m.App.Session.Pop(r.Context(), "products").([]models.Product)
 
 	form := forms.New(r.Form)
@@ -1885,6 +1952,14 @@ func (m *Repository) ListPurchases(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+
+	var purch []models.Purchases
+	for _, v := range p {
+		v.Amount = helpers.ToDecimalPlace(v.Amount, 2)
+		purch = append(purch, v)
+	}
+
+	data["purchases"] = purch
 
 	render.Template(w, r, "displaypurchases.page.html", &models.TemplateData{
 		Data: data,

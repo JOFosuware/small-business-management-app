@@ -92,11 +92,11 @@
                 {{end}}
                 <label for="price" class="form-label">Price</label>
                 <input
-                  type="number"
+                  type="text"
                   name="price"
                   class="form-control"
                   id="price"
-                  value="{{$prod.Price}}"
+                  value="{{if ne $prod.Price 0.00}}{{$prod.Price}}{{end}}"
                   required
                 />
                 <div class="invalid-feedback">Please enter product price!</div>
@@ -112,7 +112,7 @@
                   name="stock"
                   class="form-control"
                   id="stock"
-                  value="{{$prod.Units}}"
+                  value="{{if ne $prod.Units 0}}{{$prod.Units}}{{end}}"
                   required
                 />
                 <div class="invalid-feedback">

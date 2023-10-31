@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 15.4 (Ubuntu 15.4-1.pgdg20.04+1)
--- Dumped by pg_dump version 15.4 (Ubuntu 15.4-1.pgdg20.04+1)
+-- Dumped from database version 16.0 (Ubuntu 16.0-1.pgdg22.04+1)
+-- Dumped by pg_dump version 16.0 (Ubuntu 16.0-1.pgdg22.04+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -38,6 +38,7 @@ CREATE TABLE public.customers (
     landmark character varying,
     agreement character varying,
     contract_status character varying,
+    months integer,
     user_id integer,
     created_at timestamp without time zone,
     updated_at timestamp without time zone
@@ -59,7 +60,7 @@ CREATE SEQUENCE public.customers_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.customers_id_seq OWNER TO postgres;
+ALTER SEQUENCE public.customers_id_seq OWNER TO postgres;
 
 --
 -- Name: customers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
@@ -74,13 +75,13 @@ ALTER SEQUENCE public.customers_id_seq OWNED BY public.customers.id;
 
 CREATE TABLE public.payments (
     id integer NOT NULL,
-    customer_id character varying(255) DEFAULT ''::character varying NOT NULL,
-    month character varying(255) DEFAULT ''::character varying NOT NULL,
-    amount integer NOT NULL,
-    payment_date timestamp without time zone NOT NULL,
-    user_id integer NOT NULL,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    customer_id character varying,
+    month character varying,
+    amount real,
+    payment_date timestamp without time zone,
+    user_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
 );
 
 
@@ -99,7 +100,7 @@ CREATE SEQUENCE public.payments_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.payments_id_seq OWNER TO postgres;
+ALTER SEQUENCE public.payments_id_seq OWNER TO postgres;
 
 --
 -- Name: payments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
@@ -114,14 +115,14 @@ ALTER SEQUENCE public.payments_id_seq OWNED BY public.payments.id;
 
 CREATE TABLE public.products (
     id integer NOT NULL,
-    serial character varying(255) DEFAULT ''::character varying NOT NULL,
-    name character varying(255) DEFAULT ''::character varying NOT NULL,
-    description text DEFAULT ''::text NOT NULL,
-    price numeric NOT NULL,
-    units integer NOT NULL,
-    user_id integer NOT NULL,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    serial character varying,
+    name character varying,
+    description text,
+    price real,
+    units integer,
+    user_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
 );
 
 
@@ -140,7 +141,7 @@ CREATE SEQUENCE public.products_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.products_id_seq OWNER TO postgres;
+ALTER SEQUENCE public.products_id_seq OWNER TO postgres;
 
 --
 -- Name: products_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
@@ -157,11 +158,10 @@ CREATE TABLE public.purchased_oncredit (
     id integer NOT NULL,
     customer_id character varying,
     serial character varying,
-    price integer,
+    price real,
     quantity integer,
-    deposit integer,
-    balance integer,
-    item_image bytea,
+    deposit real,
+    balance real,
     user_id integer,
     created_at timestamp without time zone,
     updated_at timestamp without time zone
@@ -183,7 +183,7 @@ CREATE SEQUENCE public.purchased_oncredit_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.purchased_oncredit_id_seq OWNER TO postgres;
+ALTER SEQUENCE public.purchased_oncredit_id_seq OWNER TO postgres;
 
 --
 -- Name: purchased_oncredit_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
@@ -198,12 +198,12 @@ ALTER SEQUENCE public.purchased_oncredit_id_seq OWNED BY public.purchased_oncred
 
 CREATE TABLE public.purchases (
     id integer NOT NULL,
-    serial character varying(255) DEFAULT ''::character varying NOT NULL,
-    quantity integer NOT NULL,
-    amount integer NOT NULL,
-    user_id integer NOT NULL,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    serial character varying,
+    quantity integer,
+    amount real,
+    user_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
 );
 
 
@@ -222,7 +222,7 @@ CREATE SEQUENCE public.purchases_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.purchases_id_seq OWNER TO postgres;
+ALTER SEQUENCE public.purchases_id_seq OWNER TO postgres;
 
 --
 -- Name: purchases_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
@@ -274,7 +274,7 @@ CREATE SEQUENCE public.users_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.users_id_seq OWNER TO postgres;
+ALTER SEQUENCE public.users_id_seq OWNER TO postgres;
 
 --
 -- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
@@ -316,7 +316,7 @@ CREATE SEQUENCE public.witness_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.witness_id_seq OWNER TO postgres;
+ALTER SEQUENCE public.witness_id_seq OWNER TO postgres;
 
 --
 -- Name: witness_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres

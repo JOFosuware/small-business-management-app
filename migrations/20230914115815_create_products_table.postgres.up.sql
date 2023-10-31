@@ -1,11 +1,10 @@
-CREATE TABLE purchased_oncredit (
+CREATE TABLE products (
     id SERIAL PRIMARY KEY,
-    customer_id VARCHAR,
     serial VARCHAR,
+    name VARCHAR,
+    description text,
     price real,
-    quantity INTEGER,
-    deposit real,
-    balance real,
+    units INTEGER,
     user_id INTEGER,
     created_at TIMESTAMP,
     updated_at TIMESTAMP
