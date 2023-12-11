@@ -30,14 +30,14 @@
                 </tr>
               </thead>
               <tbody id="listPayments">
-                {{$u := index .Data "user"}}
+                {{$en := index .Data "enterer"}}
                 {{range $pymt := index .Data "payments"}}
                     <tr>
                         <td>{{$pymt.CustomerId}}</td>
                         <td>{{$pymt.Month}}</td>
                         <td>{{$pymt.Amount}}</td>
                         <td>{{humanDate $pymt.Date}}</td>
-                        <td>{{$u.Username}}</td>
+                        <td>{{$en}}</td>
                     </tr>
                 {{end}}
               </tbody>

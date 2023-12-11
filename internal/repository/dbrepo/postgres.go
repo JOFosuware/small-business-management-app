@@ -1009,7 +1009,7 @@ func (m *postgresDBRepo) FetchPaymentsByPage(page int) ([]models.Payments, error
 	defer cancel()
 
 	var p []models.Payments
-	limit := 6
+	limit := 2
 	offset := (page - 1) * limit
 
 	query := `
@@ -1100,7 +1100,7 @@ func (m *postgresDBRepo) FetchPurchaseByPage(page int) ([]models.Purchases, erro
 	defer cancel()
 
 	var p []models.Purchases
-	limit := 6
+	limit := 2
 	offset := (page - 1) * limit
 
 	query := `

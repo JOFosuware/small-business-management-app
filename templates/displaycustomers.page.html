@@ -32,7 +32,7 @@
                 </tr>
               </thead>
               <tbody id="listCustomers">
-                {{$u := index .Data "user"}}
+                {{$en := index .Data "enterer"}}
                 {{range $cust := index .Data "customers"}}
                     <tr>
                         <td>{{$cust.CustomerId}}</td>
@@ -41,7 +41,7 @@
                         <td>{{$cust.Status}}</td>
                         <td><img class="img-fluid" src="data:image/png;base64,{{convertToBase64 $cust.CustImage}}" alt="customer image"></td>
                         <td>{{humanDate $cust.UpdatedAt}}</td>
-                        <td>{{$u.Username}}</td>
+                        <td>{{$en}}</td>
                     </tr>
                 {{end}}
               </tbody>
@@ -68,7 +68,7 @@
 
 {{define "js"}}
   <script>
-    {{$u := index .Data "user"}}
+    {{$en := index .Data "enterer"}}
     const listCustEl = document.getElementById("listCustomers")
     const nextPage = document.getElementById("nextPage")
     const prevPage = document.getElementById("prevPage")
@@ -100,7 +100,7 @@
 
           listCustEl.innerHTML = ""
           resp.customers.forEach(function(cust){
-            const username = '{{$u.Username}}'
+            const username = '{{$en}}'
             listCustEl.innerHTML += `
               <tr>
                 <td>${cust.CustomerId}</td>
@@ -139,7 +139,7 @@
 
           listCustEl.innerHTML = ""
           resp.customers.forEach(function(cust){
-            const username = '{{$u.Username}}'
+            const username = '{{$en}}'
             listCustEl.innerHTML += `
               <tr>
                 <td>${cust.CustomerId}</td>

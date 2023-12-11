@@ -29,13 +29,13 @@
                 </tr>
               </thead>
               <tbody id="listPurchases">
-                {{$u := index .Data "user"}}
+                {{$en := index .Data "enterer"}}
                 {{range $p := index .Data "purchases"}}
                     <tr>
                         <td>{{$p.Serial}}</td>
                         <td>{{$p.Quantity}}</td>
                         <td>{{humanDate $p.UpdatedAt}}</td>
-                        <td>{{$u.Username}}</td>
+                        <td>{{$en}}</td>
                     </tr>
                 {{end}}
               </tbody>
@@ -62,7 +62,7 @@
 
 {{define "js"}}
   <script>
-    {{$u := index .Data "user"}}
+    {{$en := index .Data "enterer"}}
     const listPurchEl = document.getElementById("listPurchases")
     const nextPage = document.getElementById("nextPage")
     const prevPage = document.getElementById("prevPage")
@@ -94,7 +94,7 @@
 
           listPurchEl.innerHTML = ""
           resp.purchases.forEach(function(p){
-            const username = '{{$u.Username}}'
+            const username = '{{$en}}'
             listPurchEl.innerHTML += `
               <tr>
                 <td>${p.Serial}</td>
@@ -130,7 +130,7 @@
 
           listPurchEl.innerHTML = ""
           resp.purchases.forEach(function(p){
-            const username = '{{$u.Username}}'
+            const username = '{{$en}}'
             listPurchEl.innerHTML += `
               <tr>
                 <td>${p.Serial}</td>

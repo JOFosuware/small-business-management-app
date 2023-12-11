@@ -1443,7 +1443,7 @@ func (m *Repository) UpdateItem(w http.ResponseWriter, r *http.Request) {
 	custId := r.Form.Get("cust_id")
 	serial := r.Form.Get("serial")
 	quantity := r.Form.Get("quantity")
-	deposit, _ := strconv.Atoi(strings.TrimSpace(r.Form.Get("deposit")))
+	deposit, _ := strconv.ParseFloat(strings.TrimPrefix(r.Form.Get("deposit"), "₵"), 64)
 	qty, _ := strconv.Atoi(quantity)
 	prods, _ := m.App.Session.Pop(r.Context(), "products").([]models.Product)
 
@@ -1512,13 +1512,13 @@ func (m *Repository) ListCustomers(w http.ResponseWriter, r *http.Request) {
 	if pg == 0 {
 		pg = 1
 	}
-	user, ok := m.App.Session.Get(r.Context(), "user").(models.User)
-	if !ok {
-		m.App.Session.Put(r.Context(), "error", "You must logged in first!")
-		m.App.ErrorLog.Println("user could be found in the session!")
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-		return
-	}
+	// user, ok := m.App.Session.Get(r.Context(), "user").(models.User)
+	// if !ok {
+	// 	m.App.Session.Put(r.Context(), "error", "You must logged in first!")
+	// 	m.App.ErrorLog.Println("user could be found in the session!")
+	// 	http.Redirect(w, r, "/", http.StatusSeeOther)
+	// 	return
+	// }
 	meta := models.FormMetaData{
 		Section: "Contract",
 		Url:     "/admin/list-customers/1",
@@ -1529,7 +1529,6 @@ func (m *Repository) ListCustomers(w http.ResponseWriter, r *http.Request) {
 	cust, err := m.DB.FetchCustomersByPage(pg)
 	data["customers"] = cust
 	data["metadata"] = meta
-	data["user"] = user
 
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "Customers cannot be fetched!")
@@ -1547,6 +1546,9 @@ func (m *Repository) ListCustomers(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+
+	enterer, _ := m.DB.FetchUserById(cust[0].UserId)
+	data["enterer"] = enterer
 
 	render.Template(w, r, "displaycustomers.page.html", &models.TemplateData{
 		Data: data,
@@ -1617,6 +1619,23 @@ func (m *Repository) PostPayments(w http.ResponseWriter, r *http.Request) {
 	form.Required("customerId", "month", "payingamount")
 	if !form.Valid() {
 		m.App.Session.Put(r.Context(), "error", "One of the fields is empty")
+		metaData := models.FormMetaData{
+			Section: "Contract",
+			Message: "Add Payment Information",
+			Button:  "Add Payment",
+			Url:     "/admin/pay",
+		}
+		data["payment"] = p
+		data["metadata"] = metaData
+		render.Template(w, r, "paymentform.page.html", &models.TemplateData{
+			Form: form,
+			Data: data,
+		})
+		return
+	}
+
+	if p.Month == "The Month" {
+		m.App.Session.Put(r.Context(), "error", "Choose the month of payment!")
 		metaData := models.FormMetaData{
 			Section: "Contract",
 			Message: "Add Payment Information",
@@ -1761,6 +1780,9 @@ func (m *Repository) ListPayments(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	enterer, _ := m.DB.FetchUserById(pymt[0].UserId)
+	data["enterer"] = enterer
+
 	render.Template(w, r, "displaypayments.page.html", &models.TemplateData{
 		Data: data,
 	})
@@ -1824,7 +1846,7 @@ func (m *Repository) PurchaseForm(w http.ResponseWriter, r *http.Request) {
 	} else {
 		metaData := models.FormMetaData{
 			Message: "Select Product",
-			Button:  "Post Product",
+			Button:  "Post Purchase",
 			Url:     "/admin/add-purchase",
 			Section: "Purchase",
 		}
@@ -1959,7 +1981,10 @@ func (m *Repository) ListPurchases(w http.ResponseWriter, r *http.Request) {
 		purch = append(purch, v)
 	}
 
+	enterer, _ := m.DB.FetchUserById(purch[0].UserId)
+
 	data["purchases"] = purch
+	data["enterer"] = enterer
 
 	render.Template(w, r, "displaypurchases.page.html", &models.TemplateData{
 		Data: data,

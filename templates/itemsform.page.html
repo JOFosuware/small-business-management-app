@@ -157,6 +157,7 @@
                       stockAlert.innerText = ""
                       btnItem.disabled = false
                       inputUnitDiv.value = ""
+                      depositEl.value = ""
                     }
                     break
                   }
@@ -181,8 +182,10 @@
             
             //price = document.getElementById("price").value
             price = p.replace("₵", "")
-            console.log("Constant quantity: ", qty)
-            price /= qty
+            if(qty !== ""){
+              price /= qty
+            }
+  
             let totalPrice = (parseInt(price) * parseInt(inputUnit))
             // if(inputUnit == 1){
             //   totalPrice = p.replace("₵", "")
