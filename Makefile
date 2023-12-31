@@ -1,6 +1,6 @@
-DB_NAME=oseeea.go
-DB_USER=postgres
-DB_PASS=Science@1992
+DB_NAME=sbma
+DB_USER=jofosware
+DB_PASS=ejpnAfPJ9BqStu4vvT7mTO3uHCCaGqaG
 CACHE=false
 PRODUCTION=false
 
