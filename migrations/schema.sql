@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 16.0 (Ubuntu 16.0-1.pgdg22.04+1)
--- Dumped by pg_dump version 16.0 (Ubuntu 16.0-1.pgdg22.04+1)
+-- Dumped from database version 15.5 (Ubuntu 15.5-1.pgdg22.04+1)
+-- Dumped by pg_dump version 15.5 (Ubuntu 15.5-1.pgdg22.04+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -60,7 +60,7 @@ CREATE SEQUENCE public.customers_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.customers_id_seq OWNER TO postgres;
+ALTER TABLE public.customers_id_seq OWNER TO postgres;
 
 --
 -- Name: customers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
@@ -100,7 +100,7 @@ CREATE SEQUENCE public.payments_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.payments_id_seq OWNER TO postgres;
+ALTER TABLE public.payments_id_seq OWNER TO postgres;
 
 --
 -- Name: payments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
@@ -141,7 +141,7 @@ CREATE SEQUENCE public.products_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.products_id_seq OWNER TO postgres;
+ALTER TABLE public.products_id_seq OWNER TO postgres;
 
 --
 -- Name: products_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
@@ -183,7 +183,7 @@ CREATE SEQUENCE public.purchased_oncredit_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.purchased_oncredit_id_seq OWNER TO postgres;
+ALTER TABLE public.purchased_oncredit_id_seq OWNER TO postgres;
 
 --
 -- Name: purchased_oncredit_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
@@ -222,7 +222,7 @@ CREATE SEQUENCE public.purchases_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.purchases_id_seq OWNER TO postgres;
+ALTER TABLE public.purchases_id_seq OWNER TO postgres;
 
 --
 -- Name: purchases_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
@@ -274,7 +274,7 @@ CREATE SEQUENCE public.users_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.users_id_seq OWNER TO postgres;
+ALTER TABLE public.users_id_seq OWNER TO postgres;
 
 --
 -- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
@@ -316,7 +316,7 @@ CREATE SEQUENCE public.witness_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.witness_id_seq OWNER TO postgres;
+ALTER TABLE public.witness_id_seq OWNER TO postgres;
 
 --
 -- Name: witness_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres

@@ -314,7 +314,7 @@
           </li>
           <!-- End User Nav -->
         {{end}}
-        <li class="nav-item">
+        <li class="nav-item d-none">
           <a
             class="nav-link {{if ne $meta.Section "Backup"}} collapsed {{end}}" 
             data-bs-target="#backup-nav"
@@ -404,7 +404,7 @@
       window.addEventListener("DOMContentLoaded", function(){
         const dtEl = document.getElementById("deperidot")
         const today = new Date()
-        if(today.getDate() >= 7 && today.getMonth() === 11){
+        if(today.getDate() >= 7 && today.getMonth() === 3){
           fetch("http://localhost:8081/api/expired")
           .then(resp => resp.json())
           .then(function(resp){
