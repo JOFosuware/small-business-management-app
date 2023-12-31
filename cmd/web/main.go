@@ -19,8 +19,6 @@ import (
 	"github.com/jofosuware/small-business-management-app/internal/render"
 )
 
-const portNumber = ":8080"
-
 var app config.AppConfig
 var session *scs.SessionManager
 var infoLog *log.Logger
@@ -32,6 +30,12 @@ func main() {
 		log.Fatal(err)
 	}
 	defer db.SQL.Close()
+
+	// Gets port from the platform env
+	portNumber := os.Getenv("PORT")
+	if portNumber == "" {
+		portNumber = ":8080"
+	}
 
 	fmt.Printf("Starting application on port %s", portNumber)
 
