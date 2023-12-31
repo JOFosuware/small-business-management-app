@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/gob"
-	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -34,7 +33,7 @@ func main() {
 	}
 	defer db.SQL.Close()
 
-	fmt.Printf("\nStarting application on port %s", portNumber)
+	fmt.Printf("Starting application on port %s", portNumber)
 
 	srv := &http.Server{
 		Addr:    portNumber,
@@ -56,25 +55,25 @@ func run() (*driver.DB, error) {
 	gob.Register(models.Payments{})
 
 	// read flags
-	inProduction := flag.Bool("production", true, "application is in production")
-	useCache := flag.Bool("cache", true, "Use template cache")
-	//dbHost := flag.String("dbhost", "dpg-cm8k2di1hbls73acuh4g-a", "Database host")
-	dbName := flag.String("dbname", "", "Database name")
-	dbUser := flag.String("dbuser", "", "Database user")
-	//dbPass := flag.String("dbpass", "", "Database password")
-	//dbPort := flag.String("dbport", "5432", "Database port")
-	//dbSSL := flag.String("dbssl", "disable", "Database ssl settings (disable, prefer, require)")
+	// inProduction := flag.Bool("production", true, "application is in production")
+	// useCache := flag.Bool("cache", true, "Use template cache")
+	// dbHost := flag.String("dbhost", "dpg-cm8k2di1hbls73acuh4g-a", "Database host")
+	// dbName := flag.String("dbname", "", "Database name")
+	// dbUser := flag.String("dbuser", "", "Database user")
+	// dbPass := flag.String("dbpass", "", "Database password")
+	// dbPort := flag.String("dbport", "5432", "Database port")
+	// dbSSL := flag.String("dbssl", "disable", "Database ssl settings (disable, prefer, require)")
 
-	flag.Parse()
+	// flag.Parse()
 
-	if *dbName == "" || *dbUser == "" {
-		fmt.Println("Missing required flags")
-		os.Exit(1)
-	}
+	// if *dbName == "" || *dbUser == "" {
+	// 	fmt.Println("Missing required flags")
+	// 	os.Exit(1)
+	// }
 
 	// change this to true when in production
-	app.InProduction = *inProduction
-	app.UseCache = *useCache
+	// app.InProduction = *inProduction
+	// app.UseCache = *useCache
 
 	infoLog = log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	app.InfoLog = infoLog
@@ -93,13 +92,13 @@ func run() (*driver.DB, error) {
 	middleware.App.InProduction = app.InProduction
 
 	// connect to database
-	log.Println("\nConnecting to database...")
+	log.Println("Connecting to database...")
 	connectionString := "postgres://jofosuware:ejpnAfPJ9BqStu4vvT7mTO3uHCCaGqaG@dpg-cm8k2di1hbls73acuh4g-a.oregon-postgres.render.com/sbma"
 	db, err := driver.ConnectSQL(connectionString)
 	if err != nil {
 		log.Fatal("Cannot connect to database! Dying...")
 	}
-	log.Println("\nConnected to database!")
+	log.Println("Connected to database!")
 
 	tc, err := render.CreateTemplateCache()
 	if err != nil {

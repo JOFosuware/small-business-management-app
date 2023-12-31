@@ -1,4 +1,4 @@
-CREATE TABLE witness (
+CREATE TABLE IF NOT EXISTS witness (
     id SERIAL PRIMARY KEY,
     customer_id VARCHAR,
     first_name VARCHAR,

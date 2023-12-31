@@ -1,4 +1,4 @@
-CREATE TABLE purchases (
+CREATE TABLE IF NOT EXISTS purchases (
     id SERIAL PRIMARY KEY,
     serial VARCHAR,
     quantity INTEGER,

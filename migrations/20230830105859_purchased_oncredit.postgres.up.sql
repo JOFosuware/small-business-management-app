@@ -1,4 +1,4 @@
-CREATE TABLE purchased_oncredit (
+CREATE TABLE IF NOT EXISTS purchased_oncredit (
     id SERIAL PRIMARY KEY,
     customer_id VARCHAR,
     serial VARCHAR,

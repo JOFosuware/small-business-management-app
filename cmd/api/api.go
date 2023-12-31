@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -16,20 +15,22 @@ import (
 
 func main() {
 	// read flags
-	serverPort := flag.Int("port", 8081, "Port the server is starting on")
+	//serverPort := flag.Int("port", 8081, "Port the server is starting on")
 	//dbHost := flag.String("dbhost", "dpg-cm8k2di1hbls73acuh4g-a", "Database host")
-	dbName := flag.String("dbname", "", "Database name")
-	dbUser := flag.String("dbuser", "", "Database user")
+	//dbName := flag.String("dbname", "", "Database name")
+	//dbUser := flag.String("dbuser", "", "Database user")
 	//dbPass := flag.String("dbpass", "", "Database password")
 	//dbPort := flag.String("dbport", "5432", "Database port")
 	//dbSSL := flag.String("dbssl", "disable", "Database ssl settings (disable, prefer, require)")
 
-	flag.Parse()
+	//flag.Parse()
 
-	if *dbName == "" || *dbUser == "" {
-		fmt.Println("Missing required flags")
-		os.Exit(1)
-	}
+	// if *dbName == "" || *dbUser == "" {
+	// 	fmt.Println("Missing required flags")
+	// 	os.Exit(1)
+	// }
+
+	serverPort := 8081
 
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
@@ -54,7 +55,7 @@ func main() {
 	}
 
 	srv := &http.Server{
-		Addr:              fmt.Sprintf(":%d", *serverPort),
+		Addr:              fmt.Sprintf(":%d", serverPort),
 		Handler:           apiRoutes.Routes(),
 		IdleTimeout:       30 * time.Second,
 		ReadTimeout:       10 * time.Second,
@@ -62,7 +63,7 @@ func main() {
 		WriteTimeout:      5 * time.Second,
 	}
 
-	infoLog.Printf("\nStarting Back end server on port %d\n", *serverPort)
+	infoLog.Printf("Starting Back end server on port %d", serverPort)
 
 	err = srv.ListenAndServe()
 	if err != nil {

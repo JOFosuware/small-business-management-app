@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 15.5 (Ubuntu 15.5-1.pgdg22.04+1)
+-- Dumped from database version 15.5
 -- Dumped by pg_dump version 15.5 (Ubuntu 15.5-1.pgdg22.04+1)
 
 SET statement_timeout = 0;
@@ -16,12 +16,21 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
+--
+-- Name: public; Type: SCHEMA; Schema: -; Owner: jofosuware
+--
+
+-- *not* creating schema, since initdb creates it
+
+
+ALTER SCHEMA public OWNER TO jofosuware;
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
 
 --
--- Name: customers; Type: TABLE; Schema: public; Owner: postgres
+-- Name: customers; Type: TABLE; Schema: public; Owner: jofosuware
 --
 
 CREATE TABLE public.customers (
@@ -45,10 +54,10 @@ CREATE TABLE public.customers (
 );
 
 
-ALTER TABLE public.customers OWNER TO postgres;
+ALTER TABLE public.customers OWNER TO jofosuware;
 
 --
--- Name: customers_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: customers_id_seq; Type: SEQUENCE; Schema: public; Owner: jofosuware
 --
 
 CREATE SEQUENCE public.customers_id_seq
@@ -60,17 +69,17 @@ CREATE SEQUENCE public.customers_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.customers_id_seq OWNER TO postgres;
+ALTER TABLE public.customers_id_seq OWNER TO jofosuware;
 
 --
--- Name: customers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: customers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: jofosuware
 --
 
 ALTER SEQUENCE public.customers_id_seq OWNED BY public.customers.id;
 
 
 --
--- Name: payments; Type: TABLE; Schema: public; Owner: postgres
+-- Name: payments; Type: TABLE; Schema: public; Owner: jofosuware
 --
 
 CREATE TABLE public.payments (
@@ -85,10 +94,10 @@ CREATE TABLE public.payments (
 );
 
 
-ALTER TABLE public.payments OWNER TO postgres;
+ALTER TABLE public.payments OWNER TO jofosuware;
 
 --
--- Name: payments_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: payments_id_seq; Type: SEQUENCE; Schema: public; Owner: jofosuware
 --
 
 CREATE SEQUENCE public.payments_id_seq
@@ -100,17 +109,17 @@ CREATE SEQUENCE public.payments_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.payments_id_seq OWNER TO postgres;
+ALTER TABLE public.payments_id_seq OWNER TO jofosuware;
 
 --
--- Name: payments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: payments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: jofosuware
 --
 
 ALTER SEQUENCE public.payments_id_seq OWNED BY public.payments.id;
 
 
 --
--- Name: products; Type: TABLE; Schema: public; Owner: postgres
+-- Name: products; Type: TABLE; Schema: public; Owner: jofosuware
 --
 
 CREATE TABLE public.products (
@@ -126,10 +135,10 @@ CREATE TABLE public.products (
 );
 
 
-ALTER TABLE public.products OWNER TO postgres;
+ALTER TABLE public.products OWNER TO jofosuware;
 
 --
--- Name: products_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: products_id_seq; Type: SEQUENCE; Schema: public; Owner: jofosuware
 --
 
 CREATE SEQUENCE public.products_id_seq
@@ -141,17 +150,17 @@ CREATE SEQUENCE public.products_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.products_id_seq OWNER TO postgres;
+ALTER TABLE public.products_id_seq OWNER TO jofosuware;
 
 --
--- Name: products_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: products_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: jofosuware
 --
 
 ALTER SEQUENCE public.products_id_seq OWNED BY public.products.id;
 
 
 --
--- Name: purchased_oncredit; Type: TABLE; Schema: public; Owner: postgres
+-- Name: purchased_oncredit; Type: TABLE; Schema: public; Owner: jofosuware
 --
 
 CREATE TABLE public.purchased_oncredit (
@@ -168,10 +177,10 @@ CREATE TABLE public.purchased_oncredit (
 );
 
 
-ALTER TABLE public.purchased_oncredit OWNER TO postgres;
+ALTER TABLE public.purchased_oncredit OWNER TO jofosuware;
 
 --
--- Name: purchased_oncredit_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: purchased_oncredit_id_seq; Type: SEQUENCE; Schema: public; Owner: jofosuware
 --
 
 CREATE SEQUENCE public.purchased_oncredit_id_seq
@@ -183,17 +192,17 @@ CREATE SEQUENCE public.purchased_oncredit_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.purchased_oncredit_id_seq OWNER TO postgres;
+ALTER TABLE public.purchased_oncredit_id_seq OWNER TO jofosuware;
 
 --
--- Name: purchased_oncredit_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: purchased_oncredit_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: jofosuware
 --
 
 ALTER SEQUENCE public.purchased_oncredit_id_seq OWNED BY public.purchased_oncredit.id;
 
 
 --
--- Name: purchases; Type: TABLE; Schema: public; Owner: postgres
+-- Name: purchases; Type: TABLE; Schema: public; Owner: jofosuware
 --
 
 CREATE TABLE public.purchases (
@@ -207,10 +216,10 @@ CREATE TABLE public.purchases (
 );
 
 
-ALTER TABLE public.purchases OWNER TO postgres;
+ALTER TABLE public.purchases OWNER TO jofosuware;
 
 --
--- Name: purchases_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: purchases_id_seq; Type: SEQUENCE; Schema: public; Owner: jofosuware
 --
 
 CREATE SEQUENCE public.purchases_id_seq
@@ -222,17 +231,17 @@ CREATE SEQUENCE public.purchases_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.purchases_id_seq OWNER TO postgres;
+ALTER TABLE public.purchases_id_seq OWNER TO jofosuware;
 
 --
--- Name: purchases_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: purchases_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: jofosuware
 --
 
 ALTER SEQUENCE public.purchases_id_seq OWNED BY public.purchases.id;
 
 
 --
--- Name: schema_migration; Type: TABLE; Schema: public; Owner: postgres
+-- Name: schema_migration; Type: TABLE; Schema: public; Owner: jofosuware
 --
 
 CREATE TABLE public.schema_migration (
@@ -240,10 +249,10 @@ CREATE TABLE public.schema_migration (
 );
 
 
-ALTER TABLE public.schema_migration OWNER TO postgres;
+ALTER TABLE public.schema_migration OWNER TO jofosuware;
 
 --
--- Name: users; Type: TABLE; Schema: public; Owner: postgres
+-- Name: users; Type: TABLE; Schema: public; Owner: jofosuware
 --
 
 CREATE TABLE public.users (
@@ -259,10 +268,10 @@ CREATE TABLE public.users (
 );
 
 
-ALTER TABLE public.users OWNER TO postgres;
+ALTER TABLE public.users OWNER TO jofosuware;
 
 --
--- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: jofosuware
 --
 
 CREATE SEQUENCE public.users_id_seq
@@ -274,17 +283,17 @@ CREATE SEQUENCE public.users_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.users_id_seq OWNER TO postgres;
+ALTER TABLE public.users_id_seq OWNER TO jofosuware;
 
 --
--- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: jofosuware
 --
 
 ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 
 
 --
--- Name: witness; Type: TABLE; Schema: public; Owner: postgres
+-- Name: witness; Type: TABLE; Schema: public; Owner: jofosuware
 --
 
 CREATE TABLE public.witness (
@@ -301,10 +310,10 @@ CREATE TABLE public.witness (
 );
 
 
-ALTER TABLE public.witness OWNER TO postgres;
+ALTER TABLE public.witness OWNER TO jofosuware;
 
 --
--- Name: witness_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: witness_id_seq; Type: SEQUENCE; Schema: public; Owner: jofosuware
 --
 
 CREATE SEQUENCE public.witness_id_seq
@@ -316,66 +325,66 @@ CREATE SEQUENCE public.witness_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.witness_id_seq OWNER TO postgres;
+ALTER TABLE public.witness_id_seq OWNER TO jofosuware;
 
 --
--- Name: witness_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: witness_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: jofosuware
 --
 
 ALTER SEQUENCE public.witness_id_seq OWNED BY public.witness.id;
 
 
 --
--- Name: customers id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: customers id; Type: DEFAULT; Schema: public; Owner: jofosuware
 --
 
 ALTER TABLE ONLY public.customers ALTER COLUMN id SET DEFAULT nextval('public.customers_id_seq'::regclass);
 
 
 --
--- Name: payments id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: payments id; Type: DEFAULT; Schema: public; Owner: jofosuware
 --
 
 ALTER TABLE ONLY public.payments ALTER COLUMN id SET DEFAULT nextval('public.payments_id_seq'::regclass);
 
 
 --
--- Name: products id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: products id; Type: DEFAULT; Schema: public; Owner: jofosuware
 --
 
 ALTER TABLE ONLY public.products ALTER COLUMN id SET DEFAULT nextval('public.products_id_seq'::regclass);
 
 
 --
--- Name: purchased_oncredit id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: purchased_oncredit id; Type: DEFAULT; Schema: public; Owner: jofosuware
 --
 
 ALTER TABLE ONLY public.purchased_oncredit ALTER COLUMN id SET DEFAULT nextval('public.purchased_oncredit_id_seq'::regclass);
 
 
 --
--- Name: purchases id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: purchases id; Type: DEFAULT; Schema: public; Owner: jofosuware
 --
 
 ALTER TABLE ONLY public.purchases ALTER COLUMN id SET DEFAULT nextval('public.purchases_id_seq'::regclass);
 
 
 --
--- Name: users id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: users id; Type: DEFAULT; Schema: public; Owner: jofosuware
 --
 
 ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
 
 
 --
--- Name: witness id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: witness id; Type: DEFAULT; Schema: public; Owner: jofosuware
 --
 
 ALTER TABLE ONLY public.witness ALTER COLUMN id SET DEFAULT nextval('public.witness_id_seq'::regclass);
 
 
 --
--- Name: customers customers_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: customers customers_pkey; Type: CONSTRAINT; Schema: public; Owner: jofosuware
 --
 
 ALTER TABLE ONLY public.customers
@@ -383,7 +392,7 @@ ALTER TABLE ONLY public.customers
 
 
 --
--- Name: payments payments_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: payments payments_pkey; Type: CONSTRAINT; Schema: public; Owner: jofosuware
 --
 
 ALTER TABLE ONLY public.payments
@@ -391,7 +400,7 @@ ALTER TABLE ONLY public.payments
 
 
 --
--- Name: products products_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: products products_pkey; Type: CONSTRAINT; Schema: public; Owner: jofosuware
 --
 
 ALTER TABLE ONLY public.products
@@ -399,7 +408,7 @@ ALTER TABLE ONLY public.products
 
 
 --
--- Name: purchased_oncredit purchased_oncredit_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: purchased_oncredit purchased_oncredit_pkey; Type: CONSTRAINT; Schema: public; Owner: jofosuware
 --
 
 ALTER TABLE ONLY public.purchased_oncredit
@@ -407,7 +416,7 @@ ALTER TABLE ONLY public.purchased_oncredit
 
 
 --
--- Name: purchases purchases_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: purchases purchases_pkey; Type: CONSTRAINT; Schema: public; Owner: jofosuware
 --
 
 ALTER TABLE ONLY public.purchases
@@ -415,7 +424,7 @@ ALTER TABLE ONLY public.purchases
 
 
 --
--- Name: schema_migration schema_migration_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: schema_migration schema_migration_pkey; Type: CONSTRAINT; Schema: public; Owner: jofosuware
 --
 
 ALTER TABLE ONLY public.schema_migration
@@ -423,7 +432,7 @@ ALTER TABLE ONLY public.schema_migration
 
 
 --
--- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: jofosuware
 --
 
 ALTER TABLE ONLY public.users
@@ -431,7 +440,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- Name: witness witness_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: witness witness_pkey; Type: CONSTRAINT; Schema: public; Owner: jofosuware
 --
 
 ALTER TABLE ONLY public.witness
@@ -439,10 +448,45 @@ ALTER TABLE ONLY public.witness
 
 
 --
--- Name: schema_migration_version_idx; Type: INDEX; Schema: public; Owner: postgres
+-- Name: schema_migration_version_idx; Type: INDEX; Schema: public; Owner: jofosuware
 --
 
 CREATE UNIQUE INDEX schema_migration_version_idx ON public.schema_migration USING btree (version);
+
+
+--
+-- Name: TABLE pg_stat_database; Type: ACL; Schema: pg_catalog; Owner: postgres
+--
+
+GRANT SELECT ON TABLE pg_catalog.pg_stat_database TO datadog;
+
+
+--
+-- Name: DEFAULT PRIVILEGES FOR SEQUENCES; Type: DEFAULT ACL; Schema: -; Owner: postgres
+--
+
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres GRANT ALL ON SEQUENCES  TO jofosuware;
+
+
+--
+-- Name: DEFAULT PRIVILEGES FOR TYPES; Type: DEFAULT ACL; Schema: -; Owner: postgres
+--
+
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres GRANT ALL ON TYPES  TO jofosuware;
+
+
+--
+-- Name: DEFAULT PRIVILEGES FOR FUNCTIONS; Type: DEFAULT ACL; Schema: -; Owner: postgres
+--
+
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres GRANT ALL ON FUNCTIONS  TO jofosuware;
+
+
+--
+-- Name: DEFAULT PRIVILEGES FOR TABLES; Type: DEFAULT ACL; Schema: -; Owner: postgres
+--
+
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres GRANT ALL ON TABLES  TO jofosuware;
 
 
 --
