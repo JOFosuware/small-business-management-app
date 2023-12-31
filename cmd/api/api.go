@@ -17,12 +17,12 @@ import (
 func main() {
 	// read flags
 	serverPort := flag.Int("port", 8081, "Port the server is starting on")
-	dbHost := flag.String("dbhost", "dpg-cm8k2di1hbls73acuh4g-a", "Database host")
+	//dbHost := flag.String("dbhost", "dpg-cm8k2di1hbls73acuh4g-a", "Database host")
 	dbName := flag.String("dbname", "", "Database name")
 	dbUser := flag.String("dbuser", "", "Database user")
-	dbPass := flag.String("dbpass", "", "Database password")
-	dbPort := flag.String("dbport", "5432", "Database port")
-	dbSSL := flag.String("dbssl", "disable", "Database ssl settings (disable, prefer, require)")
+	//dbPass := flag.String("dbpass", "", "Database password")
+	//dbPort := flag.String("dbport", "5432", "Database port")
+	//dbSSL := flag.String("dbssl", "disable", "Database ssl settings (disable, prefer, require)")
 
 	flag.Parse()
 
@@ -36,7 +36,7 @@ func main() {
 
 	// connect to database
 	log.Println("\nConnecting to database...")
-	connectionString := fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s sslmode=%s", *dbHost, *dbPort, *dbName, *dbUser, *dbPass, *dbSSL)
+	connectionString := "postgres://jofosuware:ejpnAfPJ9BqStu4vvT7mTO3uHCCaGqaG@dpg-cm8k2di1hbls73acuh4g-a.oregon-postgres.render.com/sbma"
 	db, err := driver.ConnectSQL(connectionString)
 	if err != nil {
 		log.Fatal("Cannot connect to database! Dying...")
