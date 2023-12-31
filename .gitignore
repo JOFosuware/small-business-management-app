@@ -1,5 +1,6 @@
 /tmp
 /dist
+/migrations
 .air.toml
 postsqlinstall.sh
 database.yml
