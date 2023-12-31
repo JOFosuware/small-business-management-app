@@ -17,7 +17,7 @@ import (
 func main() {
 	// read flags
 	serverPort := flag.Int("port", 8081, "Port the server is starting on")
-	dbHost := flag.String("dbhost", "localhost", "Database host")
+	dbHost := flag.String("dbhost", "dpg-cm8k2di1hbls73acuh4g-a", "Database host")
 	dbName := flag.String("dbname", "", "Database name")
 	dbUser := flag.String("dbuser", "", "Database user")
 	dbPass := flag.String("dbpass", "", "Database password")
