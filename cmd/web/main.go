@@ -33,6 +33,7 @@ func main() {
 
 	// Gets port from the platform env
 	portNumber := os.Getenv("PORT")
+	fmt.Println("Render Port #: ", portNumber)
 	if portNumber == "" {
 		portNumber = ":8080"
 	}
