@@ -35,13 +35,13 @@ func main() {
 	portNumber := os.Getenv("PORT")
 	fmt.Println("Render Port #: ", portNumber)
 	if portNumber == "" {
-		portNumber = ":8080"
+		portNumber = "8080"
 	}
 
-	fmt.Printf("Starting application on port %s", portNumber)
+	fmt.Printf("Starting application on port %s\n", portNumber)
 
 	srv := &http.Server{
-		Addr:    portNumber,
+		Addr:    fmt.Sprintf(":%s", portNumber),
 		Handler: routes.Routes(&app),
 	}
 

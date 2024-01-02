@@ -32,22 +32,16 @@ build_back:
 ## start: starts front and back end
 start: start_front start_back
 
-## db_migration: migrates the various tables
-db_migration: 
-	@echo "Migrating database once"
-	@soda migrate
-	@echo "Database migrated!"
-
 ## start_front: starts the front end
 start_front: build_front
 	@echo "Starting the front end..."
-	./dist/sbma
+	./dist/sbma &
 	@echo "Front end running!"
 
 ## start_back: starts the back end
 start_back: build_back
 	@echo "Starting the back end..."
-	./dist/sbma_api 
+	./dist/sbma_api &
 	@echo "Back end running!"
 
 ## stop: stops the front and back end
@@ -57,11 +51,11 @@ stop: stop_front stop_back
 ## stop_front: stops the front end
 stop_front:
 	@echo "Stopping the front end..."
-	@-pkill -SIGTERM -f "sbma "
+	@-pkill -SIGTERM -f "sbma"
 	@echo "Stopped front end"
 
 ## stop_back: stops the back end
 stop_back:
 	@echo "Stopping the back end..."
-	@-pkill -SIGTERM -f "sbma_api "
+	@-pkill -SIGTERM -f "sbma_api"
 	@echo "Stopped back end"

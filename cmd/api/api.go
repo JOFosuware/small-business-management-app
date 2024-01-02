@@ -36,13 +36,13 @@ func main() {
 	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
 	// connect to database
-	log.Println("\nConnecting to database...")
+	log.Println("Connecting to database...")
 	connectionString := "postgres://jofosuware:ejpnAfPJ9BqStu4vvT7mTO3uHCCaGqaG@dpg-cm8k2di1hbls73acuh4g-a.oregon-postgres.render.com/sbma"
 	db, err := driver.ConnectSQL(connectionString)
 	if err != nil {
 		log.Fatal("Cannot connect to database! Dying...")
 	}
-	log.Println("\nConnected to database!")
+	log.Println("Connected to database!")
 
 	d := db.SQL
 
@@ -63,7 +63,7 @@ func main() {
 		WriteTimeout:      5 * time.Second,
 	}
 
-	infoLog.Printf("Starting Back end server on port %d", serverPort)
+	infoLog.Printf("Starting Back end server on port %d\n", serverPort)
 
 	err = srv.ListenAndServe()
 	if err != nil {
