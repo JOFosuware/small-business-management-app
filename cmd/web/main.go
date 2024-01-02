@@ -76,9 +76,8 @@ func run() (*driver.DB, error) {
 	// 	os.Exit(1)
 	// }
 
-	// change this to true when in production
-	// app.InProduction = *inProduction
-	// app.UseCache = *useCache
+	//change this to true when in production
+	app.InProduction = true
 
 	infoLog = log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	app.InfoLog = infoLog
@@ -112,6 +111,7 @@ func run() (*driver.DB, error) {
 	}
 
 	app.TemplateCache = tc
+	app.UseCache = true
 
 	repo := handlers.NewRepo(&app, db)
 	handlers.NewHandlers(repo)
