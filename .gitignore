@@ -6,3 +6,4 @@ postsqlinstall.sh
 database.yml
 oseeea
 run.sh
+Makefile
