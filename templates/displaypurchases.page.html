@@ -63,6 +63,8 @@
 {{define "js"}}
   <script>
     {{$en := index .Data "enterer"}}
+
+    const apiUrl = "https://sbma-backend.onrender.com/api"
     const listPurchEl = document.getElementById("listPurchases")
     const nextPage = document.getElementById("nextPage")
     const prevPage = document.getElementById("prevPage")
@@ -78,7 +80,7 @@
 
     nextPage.addEventListener("click", function(){
       page++
-      fetch(`http://localhost:8081/api/list-purchases/${page}`)
+      fetch(`${apiUrl}/list-purchases/${page}`)
         .then(resp => resp.json())
         .then(function(resp) {
           if(resp.error === true){
@@ -114,7 +116,7 @@
     
     prevPage.addEventListener("click", function(){
       page--
-      fetch(`http://localhost:8081/api/list-purchases/${page}`)
+      fetch(`${apiUrl}/list-purchases/${page}`)
         .then(resp => resp.json())
         .then(function(resp) {
           if(resp.error === true){

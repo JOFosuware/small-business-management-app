@@ -126,6 +126,7 @@
 
 {{define "js"}}
     <script>
+        const apiUrl = "https://sbma-backend.onrender.com/api"
         const custIdEl = document.getElementById("customerId")
         const balEl = document.getElementById("balance")
         const pAmountEl = document.getElementById("payingAmount")
@@ -142,7 +143,7 @@
 
           errEl.innerText = ""
 
-            const apiUrl = `http://localhost:8081/api/customer-debt/${custId}`
+            const apiUrl = `${apiUrl}/customer-debt/${custId}`
             const requestHeader = {
                 method: "POST",
                 headers: {

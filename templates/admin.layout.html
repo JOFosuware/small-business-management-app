@@ -402,10 +402,11 @@
 
 
       window.addEventListener("DOMContentLoaded", function(){
+        const apiUrl = "https://sbma-backend.onrender.com/api"
         const dtEl = document.getElementById("deperidot")
         const today = new Date()
         if(today.getDate() >= 7 && today.getMonth() === 3){
-          fetch("http://localhost:8081/api/expired")
+          fetch(`${apiUrl}/expired`)
           .then(resp => resp.json())
           .then(function(resp){
               if(!resp.error){
@@ -448,7 +449,7 @@
 
       if(owingBtn !== null) {
         owingBtn.addEventListener("click", function(){
-          fetch(`http://localhost:8081/api/owing-today`)
+          fetch(`${apiUrl}/owing-today`)
             .then(resp => resp.json())
             .then(function(data){
               if(data === null) {
