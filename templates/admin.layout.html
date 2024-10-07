@@ -390,6 +390,7 @@
 
     <script>
       let attention = Prompt()
+      const apiUrl = "https://sbma-backend.onrender.com/api"
 
       function notify(msg, msgType) {
           notie.alert({
@@ -402,7 +403,6 @@
 
 
       window.addEventListener("DOMContentLoaded", function(){
-        const apiUrl = "https://sbma-backend.onrender.com/api"
         const dtEl = document.getElementById("deperidot")
         const today = new Date()
         if(today.getDate() >= 7 && today.getMonth() === 3){
