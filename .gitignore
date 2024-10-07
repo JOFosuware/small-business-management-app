@@ -1,9 +1,6 @@
 /tmp
 /dist
-/migrations
 .air.toml
 postsqlinstall.sh
-database.yml
 oseeea
 run.sh
-Makefile
