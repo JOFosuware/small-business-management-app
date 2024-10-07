@@ -30,7 +30,12 @@ func main() {
 	// 	os.Exit(1)
 	// }
 
-	serverPort := 8081
+	// Gets port from the platform env
+	portNumber := os.Getenv("PORT")
+	fmt.Println("Render Port #: ", portNumber)
+	if portNumber == "" {
+		portNumber = "8081"
+	}
 
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
@@ -55,7 +60,7 @@ func main() {
 	}
 
 	srv := &http.Server{
-		Addr:              fmt.Sprintf(":%d", serverPort),
+		Addr:              fmt.Sprintf(":%s", portNumber),
 		Handler:           apiRoutes.Routes(),
 		IdleTimeout:       30 * time.Second,
 		ReadTimeout:       10 * time.Second,
@@ -63,7 +68,7 @@ func main() {
 		WriteTimeout:      5 * time.Second,
 	}
 
-	infoLog.Printf("Starting Back end server on port %d\n", serverPort)
+	infoLog.Printf("Starting Back end server on port %s\n", portNumber)
 
 	err = srv.ListenAndServe()
 	if err != nil {
