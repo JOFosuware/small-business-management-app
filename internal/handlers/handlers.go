@@ -95,7 +95,7 @@ func (m *Repository) PostLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if password == "OseePassword" {
+	if password == "SbmaPassword" {
 		m.App.Session.Put(r.Context(), "user", user)
 		render.Template(w, r, "reset.page.html", &models.TemplateData{})
 		m.App.Session.Put(r.Context(), "user_id", user.ID)
@@ -156,7 +156,7 @@ func (m *Repository) PostUser(w http.ResponseWriter, r *http.Request) {
 	username := r.Form.Get("username")
 	userImage, _, _ := r.FormFile("userPhoto")
 	defer userImage.Close()
-	password := "OseePassword"
+	password := "SbmaPassword"
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "Couldn't process password! try again")

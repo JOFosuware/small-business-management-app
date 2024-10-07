@@ -37,7 +37,7 @@ func main() {
 
 	// connect to database
 	log.Println("Connecting to database...")
-	connectionString := "postgres://jofosuware:ejpnAfPJ9BqStu4vvT7mTO3uHCCaGqaG@dpg-cm8k2di1hbls73acuh4g-a.oregon-postgres.render.com/sbma"
+	connectionString := "postgres://postgres.ilmlvurperawqzzrqbye:0904Sc!ence@!992$@aws-0-eu-central-1.pooler.supabase.com/sbma"
 	db, err := driver.ConnectSQL(connectionString)
 	if err != nil {
 		log.Fatal("Cannot connect to database! Dying...")

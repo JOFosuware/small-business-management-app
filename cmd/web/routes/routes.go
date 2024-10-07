@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-chi/chi"
 	chiMiddleware "github.com/go-chi/chi/middleware"
+	"github.com/go-chi/cors"
 	"github.com/jofosuware/small-business-management-app/cmd/web/middleware"
 	"github.com/jofosuware/small-business-management-app/internal/config"
 	"github.com/jofosuware/small-business-management-app/internal/handlers"
@@ -12,6 +13,14 @@ import (
 
 func Routes(app *config.AppConfig) http.Handler {
 	mux := chi.NewRouter()
+
+	mux.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"https://*", "http://*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		AllowCredentials: false,
+		MaxAge:           300,
+	}))
 
 	mux.Use(chiMiddleware.Recoverer)
 	//mux.Use(middleware.NoSurf)
