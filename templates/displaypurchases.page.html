@@ -15,17 +15,17 @@
   <section class="section">
     <div class="row">
       <div class="col-lg-12">
-        <div class="card">
+        <div class="card overflow-auto">
           <div class="card-body">
             <h5 class="card-title">Purchase List</h5>
             <!-- Table with stripped rows -->
-            <table class="table">
+            <table class="table table-borderless">
               <thead>
                 <tr>
-                  <th>Product Serial</th>
-                  <th>Quantity</th>
-                  <th>Date of Purchase</th>
-                  <th>Recorder <sup>user</sup></th>
+                  <th scope="col">Product Serial</th>
+                  <th scope="col">Quantity</th>
+                  <th scope="col">Date of Purchase</th>
+                  <th scope="col">Recorder <sup>user</sup></th>
                 </tr>
               </thead>
               <tbody id="listPurchases">
@@ -64,7 +64,8 @@
   <script>
     {{$en := index .Data "enterer"}}
 
-    const apiUrl = "https://sbma-backend.onrender.com/api"
+    // const apiUrl = "https://sbma-backend.onrender.com/api"
+    const apiUrl = "http://localhost:8081/api"
     const listPurchEl = document.getElementById("listPurchases")
     const nextPage = document.getElementById("nextPage")
     const prevPage = document.getElementById("prevPage")

@@ -15,18 +15,18 @@
   <section class="section">
     <div class="row">
       <div class="col-lg-12">
-        <div class="card">
+        <div class="card overflow-auto">
           <div class="card-body">
             <h5 class="card-title">Payment List</h5>
             <!-- Table with stripped rows -->
-            <table class="table">
+            <table class="table table-borderless">
               <thead>
                 <tr>
-                  <th>Customer ID</th>
-                  <th>Month of Payment</th>
-                  <th>Amount Paid</th>
-                  <th>Date of Payment</th>
-                  <th>Recorder <sup>user</sup></th>
+                  <th scope="col">Customer ID</th>
+                  <th scope="col">Month of Payment</th>
+                  <th scope="col">Amount Paid</th>
+                  <th scope="col">Date of Payment</th>
+                  <th scope="col">Recorder <sup>user</sup></th>
                 </tr>
               </thead>
               <tbody id="listPayments">
@@ -64,7 +64,8 @@
 
 {{define "js"}}
   <script>
-    const apiUrl = "https://sbma-backend.onrender.com/api"
+    // const apiUrl = "https://sbma-backend.onrender.com/api"
+    const apiUrl = "http://localhost:8081/api"
     const listPymtEl = document.getElementById("listPayments")
     const nextPage = document.getElementById("nextPage")
     const prevPage = document.getElementById("prevPage")

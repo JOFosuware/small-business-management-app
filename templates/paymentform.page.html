@@ -32,9 +32,8 @@
               novalidate
             >
               <input type="hidden" name="csrf_token" value="{{.CSRFToken}}" />
-              <div class="row mt-4">
               <small id="errorinfo" class="text-danger mb-2"></small>
-                <div class="col">
+                <div class="col-12">
                   {{with .Form.Errors.Get "customerId"}}
                   <label class="text-danger">{{.}}</label>
                   {{end}}
@@ -50,7 +49,7 @@
                   />
                   <div class="invalid-feedback">Please enter customer Id!</div>
                 </div>
-                <div class="col-6">
+                <div class="col-12">
                     <input 
                     class="form-control" 
                     name="balance"
@@ -61,12 +60,9 @@
                     aria-label="Balance" 
                     disabled readonly
                     >
+                    <small id="balErr" class="text-danger"></small>
                   </div>
-                  <small id="balErr" class="text-danger"></small>
-              </div>
-
-              <div class="row mt-4">
-                <div class="col">
+                <div class="col-12">
                     {{with .Form.Errors.Get "month"}}
                     <label class="text-danger">{{.}}</label>
                     {{end}}
@@ -87,7 +83,7 @@
                     </select>
                     <div class="invalid-feedback">Please choose the month!</div>
                 </div>
-                <div class="col">
+                <div class="col-12">
                   {{with .Form.Errors.Get "payingamount"}}
                   <label class="text-danger">{{.}}</label>
                   {{end}}
@@ -106,9 +102,7 @@
                   </div>
                   <small id="pAmountInfo" class="text-danger"></small>
                 </div>
-              </div>
-              
-              <div class="col-7">
+              <div class="col-12">
                 <button id="btn-addPay" class="btn btn-primary w-100" type="submit">
                   {{$meta.Button}}
                 </button>

@@ -17,14 +17,14 @@
   >
     <div class="row justify-content-center">
       <div
-        class="col-xl-8 col-lg-10 col-md-6 d-flex flex-column align-items-center justify-content-center"
+        class="col-xl-8 col-lg-10 d-flex flex-column align-items-center justify-content-center"
       >
         {{$meta := index .Data "metadata"}} {{$cust := index .Data "customer"}}
         <div class="card">
           <div class="card-body">
             <h5 class="card-title">{{$meta.Message}}</h5>
 
-            <!-- Product Entry Form -->
+            <!-- Customer Entry Form -->
             <form
               action="{{$meta.Url}}"
               method="post"
@@ -34,8 +34,7 @@
             >
               <input type="hidden" name="csrf_token" value="{{.CSRFToken}}" />
               <input type="hidden" name="cust_id" value="{{$cust.ID}}" />
-              <div class="row mt-4">
-                <div class="col">
+                <div class="col-12">
                   {{with .Form.Errors.Get "customerId"}}
                   <label class="text-danger">{{.}}</label>
                   {{end}}
@@ -51,7 +50,7 @@
                   />
                   <div class="invalid-feedback">Please enter customer Id!</div>
                 </div>
-                <div class="col">
+                <div class="col-12">
                   {{with .Form.Errors.Get "idtype"}}
                   <label class="text-danger">{{.}}</label>
                   {{end}} {{if $cust.IDType}}
@@ -65,21 +64,17 @@
                   </select>
                   <div class="invalid-feedback">Please choose ID type!</div>
                 </div>
-              </div>
-              <div class="row mt-4">
-                <div class="col">
+                <div class="col-12">
                   <label for="formFile" class="form-label">Choose Customer Photo</label>
                   <input class="form-control" name="custPhoto" type="file" id="custPhoto">
                   <div class="invalid-feedback">Please choose customer photo!</div>
                 </div>
-                <div class="col">
+                <div class="col-12">
                   <label for="formFile" class="form-label">Choose ID Card Photo</label>
                   <input class="form-control" name="cardPhoto" type="file" id="cardPhoto">
                   <div class="invalid-feedback">Please choose ID Card photo!</div>
                 </div>
-              </div>
-              <div class="row mt-4">
-                <div class="col">
+                <div class="col-12">
                   {{with .Form.Errors.Get "firstname"}}
                   <label class="text-danger">{{.}}</label>
                   {{end}}
@@ -97,7 +92,7 @@
                     Please enter customer's first name!
                   </div>
                 </div>
-                <div class="col">
+                <div class="col-12">
                   {{with .Form.Errors.Get "lastname"}}
                   <label class="text-danger">{{.}}</label>
                   {{end}}
@@ -115,13 +110,11 @@
                     Please enter customer's last name!
                   </div>
                 </div>
-              </div>
 
-              <div class="row mt-4">
-                {{with .Form.Errors.Get "houseaddress"}}
-                <label class="text-danger">{{.}}</label>
-                {{end}}
-                <div class="col">
+                <div class="col-12">
+                  {{with .Form.Errors.Get "houseaddress"}}
+                  <label class="text-danger">{{.}}</label>
+                  {{end}}
                   <input
                     type="text"
                     name="houseaddress"
@@ -136,7 +129,7 @@
                     Please enter customer's house address!
                   </div>
                 </div>
-                <div class="col">
+                <div class="col-12">
                   {{with .Form.Errors.Get "phone"}}
                   <label class="text-danger">{{.}}</label>
                   {{end}}
@@ -154,10 +147,7 @@
                     Please enter customer's phone!
                   </div>
                 </div>
-              </div>
-
-              <div class="row mt-4">
-                <div class="col">
+                <div class="col-12">
                   {{with .Form.Errors.Get "location"}}
                   <label class="text-danger">{{.}}</label>
                   {{end}}
@@ -175,7 +165,7 @@
                     Please enter customer's location!
                   </div>
                 </div>
-                <div class="col">
+                <div class="col-12">
                   {{with .Form.Errors.Get "landmark"}}
                   <label class="text-danger">{{.}}</label>
                   {{end}}
@@ -193,9 +183,7 @@
                     Please enter customer's last name!
                   </div>
                 </div>
-              </div>
-              <div class="row mt-4">
-                <div class="col">
+                <div class="col-12">
                   {{with .Form.Errors.Get "months"}}
                   <label class="text-danger">{{.}}</label>
                   {{end}}
@@ -213,10 +201,7 @@
                     Please enter the number of months!
                   </div>
                 </div>
-              </div>
-
-              <div class="row mt-4">
-                <div class="col">
+                <div class="col-12">
                   {{if $cust.Agreement}}
                   <label class="text-danger"
                     >Check the box if you agree to the terms</label
@@ -230,12 +215,11 @@
                       value="Yes, I agree to the terms"
                     />
                     <label class="form-check-label" for="agreement">
-                      Do you agreement to the terms and condition?
+                      Do you agree to the terms and condition?
                     </label>
                   </div>
                 </div>
-              </div>
-              <div class="col-7">
+              <div class="col-12">
                 <button class="btn btn-primary w-100" type="submit">
                   {{$meta.Button}}
                 </button>

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -14,21 +15,22 @@ import (
 )
 
 func main() {
-	// read flags
-	//serverPort := flag.Int("port", 8081, "Port the server is starting on")
-	//dbHost := flag.String("dbhost", "dpg-cm8k2di1hbls73acuh4g-a", "Database host")
-	//dbName := flag.String("dbname", "", "Database name")
-	//dbUser := flag.String("dbuser", "", "Database user")
-	//dbPass := flag.String("dbpass", "", "Database password")
-	//dbPort := flag.String("dbport", "5432", "Database port")
-	//dbSSL := flag.String("dbssl", "disable", "Database ssl settings (disable, prefer, require)")
+	//read flags
+	inProduction := flag.Bool("production", true, "application is in production")
+	//useCache := flag.Bool("cache", true, "Use template cache")
+	dbHost := flag.String("dbhost", "localhost", "Database host")
+	dbName := flag.String("dbname", "sbma", "Database name")
+	dbUser := flag.String("dbuser", "postgres", "Database user")
+	dbPass := flag.String("dbpass", "Science@1992", "Database password")
+	dbPort := flag.Int("dbport", 5432, "Database port")
+	dbSSL := flag.String("dbssl", "disable", "Database ssl settings (disable, prefer, require)")
 
-	//flag.Parse()
+	flag.Parse()
 
-	// if *dbName == "" || *dbUser == "" {
-	// 	fmt.Println("Missing required flags")
-	// 	os.Exit(1)
-	// }
+	if *dbName == "" || *dbUser == "" {
+		fmt.Println("Missing required flags")
+		os.Exit(1)
+	}
 
 	// Gets port from the platform env
 	portNumber := os.Getenv("PORT")
@@ -42,7 +44,12 @@ func main() {
 
 	// connect to database
 	log.Println("Connecting to database...")
-	connectionString := "postgres://postgres.ilmlvurperawqzzrqbye:0904Sc!ence@!992$@aws-0-eu-central-1.pooler.supabase.com/sbma"
+	connectionString := fmt.Sprintf("host=%s port=%d dbname=%s user=%s password=%s sslmode=%s", *dbHost, *dbPort, *dbName, *dbUser, *dbPass, *dbSSL)
+
+	if *inProduction {
+		connectionString = "postgres://postgres.ilmlvurperawqzzrqbye:0904Sc!ence@!992$@aws-0-eu-central-1.pooler.supabase.com/sbma"
+	}
+
 	db, err := driver.ConnectSQL(connectionString)
 	if err != nil {
 		log.Fatal("Cannot connect to database! Dying...")

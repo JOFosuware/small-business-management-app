@@ -358,7 +358,7 @@
         <!-- You can delete the links only if you purchased the pro version. -->
         <!-- Licensing information: https://bootstrapmade.com/license/ -->
         <!-- Purchase the pro version with working PHP/AJAX contact form: https://bootstrapmade.com/nice-admin-bootstrap-admin-html-template/ -->
-        Designed by <a id="deperidot" href="/logout">DePeridot Technologies</a>
+        Developed by <a id="deperidot" href="#">DePeridot Technologies</a>
       </div>
     </footer>
     <!-- End Footer -->
@@ -390,7 +390,8 @@
 
     <script>
       let attention = Prompt()
-      const apiUrl = "https://sbma-backend.onrender.com/api"
+      // const apiUrl = "https://sbma-backend.onrender.com/api"
+      const apiUrl = "http://localhost:8081/api"
 
       function notify(msg, msgType) {
           notie.alert({
@@ -402,23 +403,23 @@
       }
 
 
-      window.addEventListener("DOMContentLoaded", function(){
-        const dtEl = document.getElementById("deperidot")
-        const today = new Date()
-        if(today.getDate() >= 7 && today.getMonth() === 3){
-          fetch(`${apiUrl}/expired`)
-          .then(resp => resp.json())
-          .then(function(resp){
-              if(!resp.error){
-                alert("Testing period is over, call the developer!")
-              }
-          })
-        setTimeout(function(){
-          dtEl.click()
-          return
-        }, 1000)
-        }
-      })
+      // window.addEventListener("DOMContentLoaded", function(){
+      //   const dtEl = document.getElementById("deperidot")
+      //   const today = new Date()
+      //   if(today.getDate() >= 7 && today.getMonth() === 3){
+      //     fetch(`${apiUrl}/expired`)
+      //     .then(resp => resp.json())
+      //     .then(function(resp){
+      //         if(!resp.error){
+      //           alert("Testing period is over, call the developer!")
+      //         }
+      //     })
+      //   setTimeout(function(){
+      //     dtEl.click()
+      //     return
+      //   }, 1000)
+      //   }
+      // })
 
       // const navigatePage = ()=>{
       //   const nextPage = document.getElementById("nextPage")

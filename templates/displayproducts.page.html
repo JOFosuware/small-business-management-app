@@ -15,22 +15,21 @@
   <section class="section">
     <div class="row">
       <div class="col-lg-12">
-        <div class="card">
+        <div class="card overflow-auto">
           <div class="card-body">
             <h5 class="card-title">Product List</h5>
             <!-- Table with stripped rows -->
-            <table class="table">
+            <table class="table table-borderless">
               <thead>
                 <tr>
-                  <th>Serial Number</th>
-                  <th>Product Name</th>
-                  <th>Description</th>
-                  <th>Unit Price</th>
-                  <th>Units In Stock</th>
+                  <th scope="col">Serial Number</th>
+                  <th scope="col">Product Name</th>
+                  <th scope="col">Description</th>
+                  <th scope="col">Unit Price</th>
+                  <th scope="col">Units In Stock</th>
                 </tr>
               </thead>
               <tbody id="listProducts">
-                
                 {{range $prod := index .Data "products"}}
                     <tr>
                         <td>{{$prod.Serial}}</td>
@@ -64,7 +63,8 @@
 
 {{define "js"}}
   <script>
-    const apiUrl = "https://sbma-backend.onrender.com/api"
+    // const apiUrl = "https://sbma-backend.onrender.com/api"
+    const apiUrl = "http://localhost:8081/api"
     const listProdEl = document.getElementById("listProducts")
     const nextPage = document.getElementById("nextPage")
     const prevPage = document.getElementById("prevPage")

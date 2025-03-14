@@ -32,9 +32,8 @@
               novalidate
             >
               <input type="hidden" name="csrf_token" value="{{.CSRFToken}}" />
-              <div class="row mt-4">
               <small id="errorinfo" class="text-danger mb-2"></small>
-                <div class="col-6">
+                <div class="col">
                   {{with .Form.Errors.Get "serial"}}
                   <label class="text-danger">{{.}}</label>
                   {{end}}
@@ -51,7 +50,7 @@
                   <div class="invalid-feedback">Please enter serial number!</div>
                 </div>
               
-              <div class="col-4">
+              <div class="col">
                 <button id="btn-Serial" class="btn btn-primary w-100" type="submit">
                   {{$meta.Button}}
                 </button>
