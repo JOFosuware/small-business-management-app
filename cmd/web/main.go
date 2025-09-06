@@ -103,7 +103,7 @@ func run() (*driver.DB, error) {
 	connectionString := fmt.Sprintf("host=%s port=%d dbname=%s user=%s password=%s sslmode=%s", *dbHost, *dbPort, *dbName, *dbUser, *dbPass, *dbSSL)
 
 	if *inProduction {
-		connectionString = "postgres://postgres.ilmlvurperawqzzrqbye:0904Sc!ence@!992$@aws-0-eu-central-1.pooler.supabase.com/sbma"
+		connectionString = "postgresql://postgres.ilmlvurperawqzzrqbye:09041992Sc!ence@!992$@aws-0-eu-central-1.pooler.supabase.com:5432/sbma"
 	}
 
 	db, err := driver.ConnectSQL(connectionString)
