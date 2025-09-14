@@ -19,9 +19,9 @@ func main() {
 	inProduction := flag.Bool("production", true, "application is in production")
 	//useCache := flag.Bool("cache", true, "Use template cache")
 	dbHost := flag.String("dbhost", "localhost", "Database host")
-	dbName := flag.String("dbname", "sbma", "Database name")
-	dbUser := flag.String("dbuser", "postgres", "Database user")
-	dbPass := flag.String("dbpass", "Science@1992", "Database password")
+	dbName := flag.String("dbname", "", "Database name")
+	dbUser := flag.String("dbuser", "", "Database user")
+	dbPass := flag.String("dbpass", "", "Database password")
 	dbPort := flag.Int("dbport", 5432, "Database port")
 	dbSSL := flag.String("dbssl", "disable", "Database ssl settings (disable, prefer, require)")
 
@@ -47,7 +47,7 @@ func main() {
 	connectionString := fmt.Sprintf("host=%s port=%d dbname=%s user=%s password=%s sslmode=%s", *dbHost, *dbPort, *dbName, *dbUser, *dbPass, *dbSSL)
 
 	if *inProduction {
-		connectionString = "postgres://postgres.ilmlvurperawqzzrqbye:0904Sc!ence@!992$@aws-0-eu-central-1.pooler.supabase.com/sbma"
+		connectionString = "postgres://postgres.ilmlvurperawqzzrqbye:$@aws-0-eu-central-1.pooler.supabase.com/sbma"
 	}
 
 	db, err := driver.ConnectSQL(connectionString)
