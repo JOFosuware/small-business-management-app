@@ -80,7 +80,6 @@ func run() (*driver.DB, error) {
 
 	//change this to true when in production
 	app.InProduction = *inProduction
-	app.UseCache = *inProduction
 
 	infoLog = log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	app.InfoLog = infoLog
