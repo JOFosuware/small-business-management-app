@@ -19,9 +19,9 @@ func main() {
 	inProduction := flag.Bool("production", true, "application is in production")
 	//useCache := flag.Bool("cache", true, "Use template cache")
 	dbHost := flag.String("dbhost", "localhost", "Database host")
-	dbName := flag.String("dbname", "", "Database name")
-	dbUser := flag.String("dbuser", "", "Database user")
-	dbPass := flag.String("dbpass", "", "Database password")
+	dbName := flag.String("dbname", "sbma", "Database name")
+	dbUser := flag.String("dbuser", "postgres", "Database user")
+	dbPass := flag.String("dbpass", "Science@1992", "Database password")
 	dbPort := flag.Int("dbport", 5432, "Database port")
 	dbSSL := flag.String("dbssl", "disable", "Database ssl settings (disable, prefer, require)")
 
