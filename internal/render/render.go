@@ -69,7 +69,11 @@ func Template(w http.ResponseWriter, r *http.Request, html string, td *models.Te
 	} else {
 		// this is just used for testing, so that we rebuild
 		// the cache on every request
-		tc, _ = CreateTemplateCache()
+		tc, err = CreateTemplateCache()
+		if err != nil {
+			log.Println("error creating template cache", err)
+			return err
+		}
 	}
 
 	t, ok := tc[html]
@@ -83,7 +87,8 @@ func Template(w http.ResponseWriter, r *http.Request, html string, td *models.Te
 
 	err = t.Execute(buf, td)
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("error executing template: %v", err)
+		return err
 	}
 
 	_, err = buf.WriteTo(w)
@@ -99,25 +104,31 @@ func Template(w http.ResponseWriter, r *http.Request, html string, td *models.Te
 func CreateTemplateCache() (map[string]*template.Template, error) {
 	myCache := map[string]*template.Template{}
 
+	// Get all the files ending with *.page.html
 	pages, err := filepath.Glob(fmt.Sprintf("%s/*.page.html", pathToTemplates))
 	if err != nil {
 		return myCache, err
 	}
 
+	// Get all the files ending with *.layout.html
+	layouts, err := filepath.Glob(fmt.Sprintf("%s/*.layout.html", pathToTemplates))
+	if err != nil {
+		return myCache, err
+	}
+
+	// Range through all the pages
 	for _, page := range pages {
 		name := filepath.Base(page)
+
+		// Create a new template set with the page's name and parse the page file
 		ts, err := template.New(name).Funcs(functions).ParseFiles(page)
 		if err != nil {
 			return myCache, err
 		}
 
-		matches, err := filepath.Glob(fmt.Sprintf("%s/*.layout.html", pathToTemplates))
-		if err != nil {
-			return myCache, err
-		}
-
-		if len(matches) > 0 {
-			ts, err = ts.ParseGlob(fmt.Sprintf("%s/*.layout.html", pathToTemplates))
+		// If layouts exist, parse them into the template set
+		if len(layouts) > 0 {
+			_, err = ts.ParseGlob(fmt.Sprintf("%s/*.layout.html", pathToTemplates))
 			if err != nil {
 				return myCache, err
 			}
